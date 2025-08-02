@@ -24,7 +24,7 @@ public class ResourceService(
 {
     public async Task<ResourceRsModel> CreateResourceAsync(string resourceName)
     {
-        var isResourceExist = await _uoW.Resources.IsResourceExistAsync(resourceName);
+        var isResourceExist = await _uoW.Resources.IsResourceExistByNameAsync(resourceName);
 
         if (isResourceExist)
         {

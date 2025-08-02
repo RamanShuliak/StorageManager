@@ -22,7 +22,7 @@ public class ResourceController(
         }
         catch (EntityAlreadyExistsException ex)
         {
-            return StatusCode(409, $"Exception during Resource creation: {ex.Message}.");
+            return StatusCode(409, $"Conflict exception during Resource creation: {ex.Message}.");
         }
         catch (Exception ex)
         {
@@ -31,7 +31,7 @@ public class ResourceController(
         }
     }
 
-    [HttpGet("get-by-id")]
+    [HttpGet("get")]
     public async Task<IActionResult> GetResourceByIdAsync(Guid id)
     {
         try
@@ -42,7 +42,7 @@ public class ResourceController(
         }
         catch (EntityNotFoundException ex)
         {
-            return StatusCode(404, $"Exception during Resource getting: {ex.Message}.");
+            return StatusCode(404, $"Not Found exception during Resource getting: {ex.Message}.");
         }
         catch (Exception ex)
         {
@@ -94,7 +94,7 @@ public class ResourceController(
         }
         catch (EntityNotFoundException ex)
         {
-            return StatusCode(404, $"Exception during Resource updating: {ex.Message}.");
+            return StatusCode(404, $"Not Found exception during Resource updating: {ex.Message}.");
         }
         catch (Exception ex)
         {
@@ -114,7 +114,7 @@ public class ResourceController(
         }
         catch (EntityNotFoundException ex)
         {
-            return StatusCode(404, $"Exception during updating Resource state: {ex.Message}.");
+            return StatusCode(404, $"Not Found exception during updating Resource state: {ex.Message}.");
         }
         catch (Exception ex)
         {
@@ -134,11 +134,11 @@ public class ResourceController(
         }
         catch (EntityNotFoundException ex)
         {
-            return StatusCode(404, $"Exception during deleting Resource: {ex.Message}.");
+            return StatusCode(404, $"Not Found exception during deleting Resource: {ex.Message}.");
         }
         catch (EntityHasIncludesException ex)
         {
-            return StatusCode(409, $"Exception during deleting Resource: {ex.Message}.");
+            return StatusCode(409, $"Conflict exception during deleting Resource: {ex.Message}.");
         }
         catch (Exception ex)
         {

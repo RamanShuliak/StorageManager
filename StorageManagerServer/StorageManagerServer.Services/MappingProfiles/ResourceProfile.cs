@@ -9,11 +9,12 @@ public class ResourceProfile : Profile
     public ResourceProfile()
     {
         CreateMap<Resource, ResourceRsModel>()
-          .ConstructUsing(src => new ResourceRsModel
-          {
-              Id = src.Id,
-              Name = src.Name,
-              IsArchived = src.IsArchived
-          });
+            .ForMember(dest => dest.Id,
+                       opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Name,
+                       opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.IsArchived,
+                       opt => opt.MapFrom(src => src.IsArchived));
     }
 }
+

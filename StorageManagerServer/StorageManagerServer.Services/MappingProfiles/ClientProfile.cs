@@ -10,22 +10,26 @@ public class ClientProfile : Profile
     public ClientProfile()
     {
         CreateMap<CreateClientRqModel, Client>()
-          .ConstructUsing(src => new Client
-          {
-              Id = Guid.NewGuid(),
-              Name = src.Name,
-              Address = src.Address,
-              IsArchived = false,
-              CreatedDate = DateTime.UtcNow
-          });
+            .ForMember(dest => dest.Id,
+                       opt => opt.MapFrom(_ => Guid.NewGuid()))
+            .ForMember(dest => dest.Name,
+                       opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.Address,
+                       opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.IsArchived,
+                       opt => opt.MapFrom(_ => false))
+            .ForMember(dest => dest.CreatedDate,
+                       opt => opt.MapFrom(_ => DateTime.UtcNow));
 
         CreateMap<Client, ClientRsModel>()
-          .ConstructUsing(src => new ClientRsModel
-          {
-              Id = src.Id,
-              Name = src.Name,
-              Address = src.Address,
-              IsArchived = src.IsArchived
-          });
+            .ForMember(dest => dest.Id,
+                       opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Name,
+                       opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.Address,
+                       opt => opt.MapFrom(src => src.Address))
+            .ForMember(dest => dest.IsArchived,
+                       opt => opt.MapFrom(src => src.IsArchived));
     }
 }
+

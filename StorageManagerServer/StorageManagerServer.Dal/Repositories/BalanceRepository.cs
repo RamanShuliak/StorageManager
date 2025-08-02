@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using StorageManagerServer.Domain.Entities;
+using StorageManagerServer.Domain.Models.RqModels;
 using StorageManagerServer.Domain.Models.RsModels;
 
 namespace StorageManagerServer.Dal.Repositories;
@@ -11,8 +12,7 @@ public interface IBalanceRepository
         Guid resourceId,
         Guid measureId);
     Task<List<BalanceRsModel>> GetBalanceListByParamsAsync(
-        Guid? resourceId = null,
-        Guid? measureId = null);
+            GetBalanceListByParamsRqModel rqModel);
     void UpdateBalance(Balance balance);
     void DeleteBalance(Balance balance);
 }
@@ -34,27 +34,26 @@ public class BalanceRepository(
         .FirstOrDefaultAsync();
 
     public async Task<List<BalanceRsModel>> GetBalanceListByParamsAsync(
-        Guid? resourceId = null,
-        Guid? measureId = null)
+        GetBalanceListByParamsRqModel rqModel)
     {
-        IQueryable<Balance> query = _dbContext.Balances
-            .AsNoTracking();
+        IQueryable<Balance> query = _dbContext.Balances.AsNoTracking();
 
-        if (resourceId.HasValue)
-            query = query.Where(b => b.ResourceId == resourceId.Value);
+        if (rqModel.ResourceIds?.Any() == true)
+            query = query.Where(b => rqModel.ResourceIds.Contains(b.ResourceId));
 
-        if (measureId.HasValue)
-            query = query.Where(b => b.MeasureId == measureId.Value);
+        if (rqModel.MeasureIds?.Any() == true)
+            query = query.Where(b => rqModel.MeasureIds.Contains(b.MeasureId));
 
         return await query
             .Select(b => new BalanceRsModel
             {
                 Amount = b.Amount,
-                ResourceName = b.Resource.Name,
-                MeasureName = b.Measure.Name
+                ResourceName = b.Resource!.Name,
+                MeasureName = b.Measure!.Name
             })
             .ToListAsync();
     }
+
 
     public void UpdateBalance(Balance balance)
         => _dbContext.Balances.Update(balance);

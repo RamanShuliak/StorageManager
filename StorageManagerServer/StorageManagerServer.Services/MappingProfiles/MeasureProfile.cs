@@ -9,11 +9,12 @@ public class MeasureProfile : Profile
     public MeasureProfile()
     {
         CreateMap<Measure, MeasureRsModel>()
-          .ConstructUsing(src => new MeasureRsModel
-          {
-              Id = src.Id,
-              Name = src.Name,
-              IsArchived = src.IsArchived
-          });
+            .ForMember(dest => dest.Id,
+                       opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Name,
+                       opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.IsArchived,
+                       opt => opt.MapFrom(src => src.IsArchived));
     }
 }
+

@@ -2,8 +2,8 @@
 
 public class NegativeBalanceException : Exception
 {
-    public NegativeBalanceException()
-    : base()
+    public NegativeBalanceException(string message)
+    : base(message)
     {
     }
 }

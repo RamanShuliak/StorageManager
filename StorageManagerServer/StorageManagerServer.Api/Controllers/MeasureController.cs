@@ -22,7 +22,7 @@ public class MeasureController(
         }
         catch (EntityAlreadyExistsException ex)
         {
-            return StatusCode(409, $"Exception during Measure creation: {ex.Message}.");
+            return StatusCode(409, $"Conflict exception during Measure creation: {ex.Message}.");
         }
         catch (Exception ex)
         {
@@ -31,7 +31,7 @@ public class MeasureController(
         }
     }
 
-    [HttpGet("get-by-id")]
+    [HttpGet("get")]
     public async Task<IActionResult> GetMeasureByIdAsync(Guid id)
     {
         try
@@ -42,7 +42,7 @@ public class MeasureController(
         }
         catch (EntityNotFoundException ex)
         {
-            return StatusCode(404, $"Exception during Measure getting: {ex.Message}.");
+            return StatusCode(404, $"Not Found exception during Measure getting: {ex.Message}.");
         }
         catch (Exception ex)
         {
@@ -94,7 +94,7 @@ public class MeasureController(
         }
         catch (EntityNotFoundException ex)
         {
-            return StatusCode(404, $"Exception during Measure updating: {ex.Message}.");
+            return StatusCode(404, $"Not Found exception during Measure updating: {ex.Message}.");
         }
         catch (Exception ex)
         {
@@ -114,7 +114,7 @@ public class MeasureController(
         }
         catch (EntityNotFoundException ex)
         {
-            return StatusCode(404, $"Exception during updating Measure state: {ex.Message}.");
+            return StatusCode(404, $"Not Found exception during updating Measure state: {ex.Message}.");
         }
         catch (Exception ex)
         {
@@ -134,11 +134,11 @@ public class MeasureController(
         }
         catch (EntityNotFoundException ex)
         {
-            return StatusCode(404, $"Exception during deleting Measure: {ex.Message}.");
+            return StatusCode(404, $"Not Found exception during deleting Measure: {ex.Message}.");
         }
         catch (EntityHasIncludesException ex)
         {
-            return StatusCode(409, $"Exception during deleting Measure: {ex.Message}.");
+            return StatusCode(409, $"Conflict exception during deleting Measure: {ex.Message}.");
         }
         catch (Exception ex)
         {

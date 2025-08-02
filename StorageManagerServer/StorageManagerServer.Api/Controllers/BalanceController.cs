@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using StorageManagerServer.Domain.Models.RqModels;
 using StorageManagerServer.Services;
 using StorageManagerServer.Services.BllServices;
 
@@ -11,21 +12,18 @@ public class BalanceController(
 {
     [HttpGet("get-list")]
     public async Task<IActionResult> GetBalanceListByParamsAsync(
-        Guid? resourceId = null,
-        Guid? measureId = null)
+        [FromQuery] GetBalanceListByParamsRqModel rqModel)
     {
         try
         {
-            var balanceList = await _balanceService.GetBalanceListByParamsAsync(
-                resourceId, 
-                measureId);
-
-            return Ok(balanceList);
+            var rsModelList = await _balanceService.GetBalanceListByParamsAsync(rqModel);
+            return Ok(rsModelList);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             await LogService.WriteErrorLogAsync($"Internal server exception during Balance list getting.\n{ex.Message}\n");
             return StatusCode(500, $"Internal server exception during Balance list getting: {ex.Message}.");
         }
     }
+
 }

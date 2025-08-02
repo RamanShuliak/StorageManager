@@ -12,7 +12,7 @@ using StorageManagerServer.Dal;
 namespace StorageManagerServer.Dal.Migrations
 {
     [DbContext(typeof(StorageDbContext))]
-    [Migration("20250731160405_InitDataBase")]
+    [Migration("20250802114509_InitDataBase")]
     partial class InitDataBase
     {
         /// <inheritdoc />
@@ -119,6 +119,9 @@ namespace StorageManagerServer.Dal.Migrations
                     b.Property<string>("Number")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("ReceiptDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -256,13 +259,13 @@ namespace StorageManagerServer.Dal.Migrations
                     b.HasOne("StorageManagerServer.Domain.Entities.Measure", "Measure")
                         .WithMany("Balances")
                         .HasForeignKey("MeasureId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("StorageManagerServer.Domain.Entities.Resource", "Resource")
                         .WithMany("Balances")
                         .HasForeignKey("ResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Measure");
@@ -281,13 +284,13 @@ namespace StorageManagerServer.Dal.Migrations
                     b.HasOne("StorageManagerServer.Domain.Entities.Measure", "Measure")
                         .WithMany("ReceiptResources")
                         .HasForeignKey("MeasureId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("StorageManagerServer.Domain.Entities.Resource", "Resource")
                         .WithMany("ReceiptResources")
                         .HasForeignKey("ResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Document");
@@ -319,13 +322,13 @@ namespace StorageManagerServer.Dal.Migrations
                     b.HasOne("StorageManagerServer.Domain.Entities.Measure", "Measure")
                         .WithMany("ShipmentResources")
                         .HasForeignKey("MeasureId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("StorageManagerServer.Domain.Entities.Resource", "Resource")
                         .WithMany("ShipmentResources")
                         .HasForeignKey("ResourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Document");

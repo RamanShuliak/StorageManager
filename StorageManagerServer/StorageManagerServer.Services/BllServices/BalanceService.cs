@@ -1,6 +1,7 @@
 ﻿using StorageManagerServer.Dal.Repositories;
 using StorageManagerServer.Domain.Dtos;
 using StorageManagerServer.Domain.Entities;
+using StorageManagerServer.Domain.Models.RqModels;
 using StorageManagerServer.Domain.Models.RsModels;
 using StorageManagerServer.Services.Exceptions;
 
@@ -9,21 +10,19 @@ namespace StorageManagerServer.Services.BllServices;
 public interface IBalanceService
 {
     Task<List<BalanceRsModel>> GetBalanceListByParamsAsync(
-        Guid? resourceId = null,
-        Guid? measureId = null);
-    Task<int> IncreaseBalanceAsync(UpdateBalanceDto dto);
-    Task<int> ReduceBalanceAsync(UpdateBalanceDto dto);
+            GetBalanceListByParamsRqModel rqModel);
+    Task<Balance> IncreaseBalanceAsync(UpdateBalanceDto dto);
+    Task<Balance> ReduceBalanceAsync(UpdateBalanceDto dto);
 }
 
 public class BalanceService(
     IUnitOfWork _uoW) : IBalanceService
 {
     public async Task<List<BalanceRsModel>> GetBalanceListByParamsAsync(
-        Guid? resourceId = null,
-        Guid? measureId = null)
-        => await _uoW.Balances.GetBalanceListByParamsAsync(resourceId, measureId);
+        GetBalanceListByParamsRqModel rqModel)
+        => await _uoW.Balances.GetBalanceListByParamsAsync(rqModel);
 
-    public async Task<int> IncreaseBalanceAsync(UpdateBalanceDto dto)
+    public async Task<Balance> IncreaseBalanceAsync(UpdateBalanceDto dto)
     {
         var balance = await _uoW.Balances.GetBalanceByParamsAsync(
             dto.ResourceId, 
@@ -49,10 +48,10 @@ public class BalanceService(
             _uoW.Balances.UpdateBalance(balance);
         }
 
-        return await _uoW.SaveChangesAsync();
+        return balance;
     }
 
-    public async Task<int> ReduceBalanceAsync(UpdateBalanceDto dto)
+    public async Task<Balance> ReduceBalanceAsync(UpdateBalanceDto dto)
     {
         var balance = await _uoW.Balances.GetBalanceByParamsAsync(
             dto.ResourceId,
@@ -68,7 +67,7 @@ public class BalanceService(
 
             if (balance.Amount < 0)
             {
-                throw new NegativeBalanceException();
+                throw new NegativeBalanceException($"Insufficient amount of Resource with Id {dto.ResourceId} and Measure with Id = {dto.MeasureId}");
             }
             else if (balance.Amount == 0)
             {
@@ -80,6 +79,6 @@ public class BalanceService(
             }
         }
 
-        return await _uoW.SaveChangesAsync();
+        return balance;
     }
 }

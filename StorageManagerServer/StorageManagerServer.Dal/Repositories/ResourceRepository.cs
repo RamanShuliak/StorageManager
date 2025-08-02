@@ -9,7 +9,8 @@ public interface IResourceRepository
     Task<Resource?> GetResourceByIdAsync(Guid id);
     Task<List<Resource>> GetActiveResourcesAsync();
     Task<List<Resource>> GetArchivedResourcesAsync();
-    Task<bool> IsResourceExistAsync(string resourceName);
+    Task<bool> IsResourceExistByNameAsync(string resourceName);
+    Task<bool> IsResourceExistByIdAsync(Guid id);
     Task<bool> IsResourceHasIncludesByIdAsync(Guid id);
     void UpdateResource(Resource resource);
     void DeleteResource(Resource resource);
@@ -43,10 +44,15 @@ public class ResourceRepository(
         .Select(e => e)
         .ToListAsync();
 
-    public async Task<bool> IsResourceExistAsync(string resourceName)
+    public async Task<bool> IsResourceExistByNameAsync(string resourceName)
         => await _dbContext.Resources
         .AsNoTracking()
         .AnyAsync(e => e.Name.Equals(resourceName));
+
+    public async Task<bool> IsResourceExistByIdAsync(Guid id)
+        => await _dbContext.Resources
+        .AsNoTracking()
+        .AnyAsync(e => e.Id.Equals(id));
 
     public async Task<bool> IsResourceHasIncludesByIdAsync(Guid id)
     {

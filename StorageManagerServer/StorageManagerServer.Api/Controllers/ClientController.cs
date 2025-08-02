@@ -22,7 +22,7 @@ public class ClientController(
         }
         catch (EntityAlreadyExistsException ex)
         {
-            return StatusCode(409, $"Exception during Client creation: {ex.Message}.");
+            return StatusCode(409, $"Conflict exception during Client creation: {ex.Message}.");
         }
         catch (Exception ex)
         {
@@ -31,7 +31,7 @@ public class ClientController(
         }
     }
 
-    [HttpGet("get-by-id")]
+    [HttpGet("get")]
     public async Task<IActionResult> GetClientByIdAsync(Guid id)
     {
         try
@@ -42,7 +42,7 @@ public class ClientController(
         }
         catch (EntityNotFoundException ex)
         {
-            return StatusCode(404, $"Exception during Client getting: {ex.Message}.");
+            return StatusCode(404, $"Not Found exception during Client getting: {ex.Message}.");
         }
         catch (Exception ex)
         {
@@ -94,7 +94,7 @@ public class ClientController(
         }
         catch (EntityNotFoundException ex)
         {
-            return StatusCode(404, $"Exception during Client updating: {ex.Message}.");
+            return StatusCode(404, $"Not Found exception during Client updating: {ex.Message}.");
         }
         catch (Exception ex)
         {
@@ -114,7 +114,7 @@ public class ClientController(
         }
         catch (EntityNotFoundException ex)
         {
-            return StatusCode(404, $"Exception during updating Client state: {ex.Message}.");
+            return StatusCode(404, $"Not Found exception during updating Client state: {ex.Message}.");
         }
         catch (Exception ex)
         {
@@ -134,11 +134,11 @@ public class ClientController(
         }
         catch (EntityNotFoundException ex)
         {
-            return StatusCode(404, $"Exception during deleting Client: {ex.Message}.");
+            return StatusCode(404, $"Not Found exception during deleting Client: {ex.Message}.");
         }
         catch (EntityHasIncludesException ex)
         {
-            return StatusCode(409, $"Exception during deleting Client: {ex.Message}.");
+            return StatusCode(409, $"Conflict exception during deleting Client: {ex.Message}.");
         }
         catch (Exception ex)
         {

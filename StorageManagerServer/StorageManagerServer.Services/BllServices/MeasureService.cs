@@ -24,7 +24,7 @@ public class MeasureService(
 {
     public async Task<MeasureRsModel> CreateMeasureAsync(string measureName)
     {
-        var isMeasureExist = await _uoW.Measures.IsMeasureExistAsync(measureName);
+        var isMeasureExist = await _uoW.Measures.IsMeasureExistByNameAsync(measureName);
 
         if (isMeasureExist)
         {
