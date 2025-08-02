@@ -27,9 +27,7 @@ public class ResourceService(
         var isResourceExist = await _uoW.Resources.IsResourceExistByNameAsync(resourceName);
 
         if (isResourceExist)
-        {
-            throw new EntityAlreadyExistsException($"resource with Name = {resourceName} is already exist");
-        }
+            throw new EntityAlreadyExistsException("Resource", "Name", resourceName);
 
         var resource = new Resource()
         {
@@ -53,9 +51,7 @@ public class ResourceService(
         var resource = await _uoW.Resources.GetResourceByIdAsync(id);
 
         if (resource == null)
-        {
-            throw new EntityNotFoundException($"There is no resource with Id = {id} in data base");
-        }
+            throw new EntityNotFoundException("Resource", "Id", id.ToString());
 
         var rsModel = _mapper.Map<ResourceRsModel>(resource);
 
@@ -97,9 +93,7 @@ public class ResourceService(
         var resource = await _uoW.Resources.GetResourceByIdAsync(rqModel.Id);
 
         if (resource == null)
-        {
-            throw new EntityNotFoundException($"There is no Resource with Id = {rqModel.Id} in data base");
-        }
+            throw new EntityNotFoundException("Resource", "Id", rqModel.Id.ToString());
 
         resource.Name = rqModel.Name;
         resource.UpdatedDate = DateTime.UtcNow;
@@ -117,9 +111,7 @@ public class ResourceService(
         var resource = await _uoW.Resources.GetResourceByIdAsync(id);
 
         if (resource == null)
-        {
-            throw new EntityNotFoundException($"There is no Resource with Id = {id} in data base");
-        }
+            throw new EntityNotFoundException("Resource", "Id", id.ToString());
 
         if (resource.IsArchived)
         {
@@ -143,16 +135,14 @@ public class ResourceService(
         var resource = await _uoW.Resources.GetResourceByIdAsync(id);
 
         if (resource == null)
-        {
-            throw new EntityNotFoundException($"There is no Resource with Id = {id} in data base");
-        }
+            throw new EntityNotFoundException("Resource", "Id", id.ToString());
 
-        var isHasIncludes = await _uoW.Resources.IsResourceHasIncludesByIdAsync(id);
 
-        if (isHasIncludes)
-        {
-            throw new EntityHasIncludesException($"resource with Id = {id} is used in the system");
-        }
+        var isInUse = await _uoW.Resources.IsResourceHasIncludesByIdAsync(id);
+
+        if (isInUse)
+            throw new EntityInUseException("Resource", id);
+
 
         _uoW.Resources.DeleteResource(resource);
         var result = await _uoW.SaveChangesAsync();

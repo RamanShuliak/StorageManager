@@ -29,7 +29,7 @@ public class ReceiptService(
         var isDocumentExist = await _uoW.ReceiptDocuments.IsDocumentExistByNumberAsync(rqModel.Number);
 
         if (isDocumentExist)
-            throw new EntityAlreadyExistsException($"Document with Number = {rqModel.Number} is already exists in data base");
+            throw new EntityAlreadyExistsException("ReceiptDocument", "Number", rqModel.Number);
 
         var document = _mapper.Map<ReceiptDocument>(rqModel);
 
@@ -62,7 +62,7 @@ public class ReceiptService(
         var rsModel = await _uoW.ReceiptDocuments.GetDocumentWithAllIncludesByIdAsync(id);
 
         if (rsModel == null)
-            throw new EntityNotFoundException($"Document with Id = {id} is not exist in data base");
+            throw new EntityNotFoundException("ReceiptDocument", "Id", id.ToString());
 
         return rsModel;
     }
@@ -72,15 +72,15 @@ public class ReceiptService(
         var document = await _uoW.ReceiptDocuments.GetDocumentByIdAsync(rqModel.Id);
 
         if (document == null)
-            throw new EntityNotFoundException($"Document with Id = {rqModel.Id} is not exist in data base");
+            throw new EntityNotFoundException("ReceiptDocument", "Id", rqModel.Id.ToString());
 
         var updatedDate = DateTime.UtcNow;
 
-        foreach(var rr in rqModel.UpdateResources)
-            await UpdateResourceAsync(rr, updatedDate);
-
-        foreach(var rr in rqModel.CreateResources)
+        foreach (var rr in rqModel.CreateResources)
             await CreateResourceAsync(rr, document.Id);
+
+        foreach (var rr in rqModel.UpdateResources)
+            await UpdateResourceAsync(rr, updatedDate);
 
         foreach(var ri in rqModel.DeleteResourceIds)
             await DeleteResourceByIdAsync(ri);
@@ -94,12 +94,12 @@ public class ReceiptService(
         return await _uoW.SaveChangesAsync();
     }
 
-    public async Task<int> DeleteDocumentByIdAsync(Guid documentId)
+    public async Task<int> DeleteDocumentByIdAsync(Guid id)
     {
-        var document = await _uoW.ReceiptDocuments.GetDocumentWithIncludesByIdAsync(documentId);
+        var document = await _uoW.ReceiptDocuments.GetDocumentWithIncludesByIdAsync(id);
 
         if (document == null)
-            throw new EntityNotFoundException($"Document with Id = {documentId} is not exist in data base");
+            throw new EntityNotFoundException("ReceiptDocument", "Id", id.ToString());
 
         if (document.ReceiptResources.Any())
         {
@@ -130,13 +130,10 @@ public class ReceiptService(
         var resource = await _uoW.ReceiptResources.GetResourceByIdAsync(rqModel.Id);
 
         if (resource == null)
-            throw new EntityNotFoundException($"Resource with Id = {rqModel.Id} is not exist in data base");
-
-        resource.Amount = rqModel.Amount;
-        resource.UpdatedDate = updatedDate;
+            throw new EntityNotFoundException("ReceiptResource", "Id", rqModel.Id.ToString());
 
         if (resource.MeasureId.Equals(rqModel.MeasureId)
-            && resource.ResourceId.Equals(rqModel.MeasureId))
+            && resource.ResourceId.Equals(rqModel.ResourceId))
         {
             var balanceDto = new UpdateBalanceDto()
             {
@@ -160,9 +157,6 @@ public class ReceiptService(
         }
         else
         {
-            resource.ResourceId = rqModel.ResourceId;
-            resource.MeasureId = rqModel.MeasureId;
-
             var currentBalanceDto = new UpdateBalanceDto()
             {
                 Amount = resource.Amount,
@@ -179,10 +173,14 @@ public class ReceiptService(
                 MeasureId = rqModel.MeasureId
             };
 
-            await _balanceService.IncreaseBalanceAsync(newBalanceDto);
+            resource.ResourceId = rqModel.ResourceId;
+            resource.MeasureId = rqModel.MeasureId;
 
+            await _balanceService.IncreaseBalanceAsync(newBalanceDto);
         }
 
+        resource.Amount = rqModel.Amount;
+        resource.UpdatedDate = updatedDate;
         _uoW.ReceiptResources.UpdateResource(resource);
 
         return 1;
@@ -211,12 +209,12 @@ public class ReceiptService(
     }
 
     private async Task<int> DeleteResourceByIdAsync(
-        Guid resourceId)
+        Guid id)
     {
-        var resource = await _uoW.ReceiptResources.GetResourceByIdAsync(resourceId);
+        var resource = await _uoW.ReceiptResources.GetResourceByIdAsync(id);
 
         if (resource == null)
-            throw new EntityNotFoundException($"Resource with Id = {resourceId} is not exist in data base");
+            throw new EntityNotFoundException("ReceiptResource", "Id", id.ToString());
 
         _uoW.ReceiptResources.DeleteResource(resource);
 

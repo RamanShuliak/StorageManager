@@ -27,9 +27,7 @@ public class ClientService(
         var isClientExist = await _uoW.Clients.IsClientExistAsync(rqModel.Name);
 
         if (isClientExist)
-        {
-            throw new EntityAlreadyExistsException($"Client with Name = {rqModel.Name} is already exist");
-        }
+            throw new EntityAlreadyExistsException("Client", "Name", rqModel.Name);
 
         var client = _mapper.Map<Client>(rqModel);
 
@@ -47,9 +45,7 @@ public class ClientService(
         var client = await _uoW.Clients.GetClientByIdAsync(id);
 
         if (client == null)
-        {
-            throw new EntityNotFoundException($"There is no Client with Id = {id} ib data base");
-        }
+            throw new EntityNotFoundException("Client", "Id", id.ToString());
 
         var rsModel = _mapper.Map<ClientRsModel>(client);
 
@@ -91,9 +87,7 @@ public class ClientService(
         var client = await _uoW.Clients.GetClientByIdAsync(rqModel.Id);
 
         if (client == null)
-        {
-            throw new EntityNotFoundException($"There is no Client with Id = {rqModel.Id} in data base");
-        }
+            throw new EntityNotFoundException("Client", "Id", rqModel.Id.ToString());
 
         client.Name = rqModel.Name;
         client.Address = rqModel.Address;
@@ -112,9 +106,7 @@ public class ClientService(
         var client = await _uoW.Clients.GetClientByIdAsync(id);
 
         if (client == null)
-        {
-            throw new EntityNotFoundException($"There is no Client with Id = {id} in data base");
-        }
+            throw new EntityNotFoundException("Client", "Id", id.ToString());
 
         if (client.IsArchived)
         {
@@ -138,16 +130,12 @@ public class ClientService(
         var client = await _uoW.Clients.GetClientByIdAsync(id);
 
         if (client == null)
-        {
-            throw new EntityNotFoundException($"There is no Client with Id = {id} in data base");
-        }
+            throw new EntityNotFoundException("Client", "Id", id.ToString());
 
-        var isHasIncludes = await _uoW.Clients.IsClientHasIncludesByIdAsync(id);
+        var isInUse = await _uoW.Clients.IsClientHasIncludesByIdAsync(id);
 
-        if (isHasIncludes)
-        {
-            throw new EntityHasIncludesException($"Client with Id = {id} is used in the system");
-        }
+        if (isInUse)
+            throw new EntityInUseException("Client", id);
 
         _uoW.Clients.DeleteClient(client);
         var result = await _uoW.SaveChangesAsync();

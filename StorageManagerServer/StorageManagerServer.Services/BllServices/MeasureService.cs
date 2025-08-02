@@ -27,9 +27,7 @@ public class MeasureService(
         var isMeasureExist = await _uoW.Measures.IsMeasureExistByNameAsync(measureName);
 
         if (isMeasureExist)
-        {
-            throw new EntityAlreadyExistsException($"Measure with Name = {measureName} is already exist");
-        }
+            throw new EntityAlreadyExistsException("Measure", "Name", measureName);
 
         var measure = new Measure()
         {
@@ -53,9 +51,7 @@ public class MeasureService(
         var measure = await _uoW.Measures.GetMeasureByIdAsync(id);
 
         if (measure == null)
-        {
-            throw new EntityNotFoundException($"There is no Measure with Id = {id} ib data base");
-        }
+            throw new EntityNotFoundException("Measure", "Id", id.ToString());
 
         var rsModel = _mapper.Map<MeasureRsModel>(measure);
 
@@ -97,9 +93,7 @@ public class MeasureService(
         var measure = await _uoW.Measures.GetMeasureByIdAsync(rqModel.Id);
 
         if (measure == null)
-        {
-            throw new EntityNotFoundException($"There is no Measure with Id = {rqModel.Id} in data base");
-        }
+            throw new EntityNotFoundException("Measure", "Id", rqModel.Id.ToString());
 
         measure.Name = rqModel.Name;
         measure.UpdatedDate = DateTime.UtcNow;
@@ -117,9 +111,7 @@ public class MeasureService(
         var measure = await _uoW.Measures.GetMeasureByIdAsync(id);
 
         if (measure == null)
-        {
-            throw new EntityNotFoundException($"There is no Measure with Id = {id} in data base");
-        }
+            throw new EntityNotFoundException("Measure", "Id", id.ToString());
 
         if (measure.IsArchived)
         {
@@ -143,16 +135,12 @@ public class MeasureService(
         var measure = await _uoW.Measures.GetMeasureByIdAsync(id);
 
         if (measure == null)
-        {
-            throw new EntityNotFoundException($"There is no Measure with Id = {id} in data base");
-        }
+            throw new EntityNotFoundException("Measure", "Id", id.ToString());
 
         var isHasIncludes = await _uoW.Measures.IsMeasureHasIncludesByIdAsync(id);
 
         if (isHasIncludes)
-        {
-            throw new EntityHasIncludesException($"Measure with Id = {id} is used in the system");
-        }
+            throw new EntityInUseException("Measure", id);
 
         _uoW.Measures.DeleteMeasure(measure);
         var result = await _uoW.SaveChangesAsync();

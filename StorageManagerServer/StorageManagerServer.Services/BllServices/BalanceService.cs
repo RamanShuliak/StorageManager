@@ -58,17 +58,14 @@ public class BalanceService(
             dto.MeasureId);
 
         if (balance == null)
-        {
-            throw new EntityNotFoundException($"There is no Resource with Id {dto.ResourceId} and Measure with Id {dto.MeasureId} in data base");
-        }
+            throw new BalanceNotFoundException(dto.ResourceId, dto.MeasureId);
         else
         {
             balance.Amount -= dto.Amount;
 
             if (balance.Amount < 0)
-            {
-                throw new NegativeBalanceException($"Insufficient amount of Resource with Id {dto.ResourceId} and Measure with Id = {dto.MeasureId}");
-            }
+                throw new NegativeBalanceException(dto.ResourceId, dto.MeasureId);
+
             else if (balance.Amount == 0)
             {
                 _uoW.Balances.DeleteBalance(balance);

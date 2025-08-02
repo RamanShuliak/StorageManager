@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using StorageManagerServer.Api.Filters;
 using StorageManagerServer.Dal;
 using StorageManagerServer.Services;
 using StorageManagerServer.Services.Extensions;
@@ -13,7 +14,11 @@ builder.Services.AddDbContext<StorageDbContext>(options =>
     )
 );
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers(options =>
+    {
+        options.Filters.Add<ApiExceptionFilter>();
+    });
 
 builder.Services.AddServices();
 
@@ -25,12 +30,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<StorageDbContext>();
-
-    //await DockerStartupService.StartDockerWithMssqlContainer();
     try
     {
-        dbContext.Database.Migrate();
-        //DataSeeder.SeedDatabase(dbContext);
+        await dbContext.Database.MigrateAsync();
+        await DataSeeder.SeedDatabase(dbContext);
     }
     catch (Exception ex)
     {
@@ -39,11 +42,10 @@ using (var scope = app.Services.CreateScope())
 
         Environment.Exit(1);
     }
-    await LogService.WriteInformationLogAsync("Migrations to data base completed successful.\n");
+    await LogService.WriteInformationLogAsync("Migrations to database completed successful.\n");
     await LogService.WriteInformationLogAsync("StorageManagerServer is ready to work.");
-    await LogService.WriteInformationLogAsync("Go to URL https://localhost:7285/swagger/index.html to work with Swagger Api.");
+    await LogService.WriteInformationLogAsync("Go to URL https://localhost:7285/swagger/index.html to work with Swagger Api.\n");
 }
-
 
 if (app.Environment.IsDevelopment())
 {

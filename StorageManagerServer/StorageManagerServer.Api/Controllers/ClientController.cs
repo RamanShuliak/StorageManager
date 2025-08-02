@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StorageManagerServer.Domain.Models.RqModels;
-using StorageManagerServer.Services;
 using StorageManagerServer.Services.BllServices;
-using StorageManagerServer.Services.Exceptions;
 
 namespace StorageManagerServer.Api.Controllers;
 
@@ -14,136 +12,56 @@ public class ClientController(
     [HttpPost("create")]
     public async Task<IActionResult> CreateClientAsync(CreateClientRqModel rqModel)
     {
-        try
-        {
-            var rsModel = await _clientService.CreateClientAsync(rqModel);
+        var rsModel = await _clientService.CreateClientAsync(rqModel);
 
-            return Ok(rsModel);
-        }
-        catch (EntityAlreadyExistsException ex)
-        {
-            return StatusCode(409, $"Conflict exception during Client creation: {ex.Message}.");
-        }
-        catch (Exception ex)
-        {
-            await LogService.WriteErrorLogAsync($"Internal server exception during Client creation.\n{ex.Message}\n");
-            return StatusCode(500, $"Internal server exception during Client creation: {ex.Message}.");
-        }
+        return Ok(rsModel);
     }
 
     [HttpGet("get")]
     public async Task<IActionResult> GetClientByIdAsync(Guid id)
     {
-        try
-        {
-            var rsModel = await _clientService.GetClientByIdAsync(id);
+        var rsModel = await _clientService.GetClientByIdAsync(id);
 
-            return Ok(rsModel);
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return StatusCode(404, $"Not Found exception during Client getting: {ex.Message}.");
-        }
-        catch (Exception ex)
-        {
-            await LogService.WriteErrorLogAsync($"Internal server exception during Client getting.\n{ex.Message}\n");
-            return StatusCode(500, $"Internal server exception during Client getting: {ex.Message}.");
-        }
+        return Ok(rsModel);
     }
 
     [HttpGet("get-active")]
     public async Task<IActionResult> GetActiveClientsAsync()
     {
-        try
-        {
-            var rsModelList = await _clientService.GetActiveClientsAsync();
+        var rsModelList = await _clientService.GetActiveClientsAsync();
 
-            return Ok(rsModelList);
-        }
-        catch (Exception ex)
-        {
-            await LogService.WriteErrorLogAsync($"Internal server exception during active Clients getting.\n{ex.Message}\n");
-            return StatusCode(500, $"Internal server exception during active Clients getting: {ex.Message}.");
-        }
+        return Ok(rsModelList);
     }
 
     [HttpGet("get-archived")]
     public async Task<IActionResult> GetArchivedClientsAsync()
     {
-        try
-        {
-            var rsModelList = await _clientService.GetArchivedClientsAsync();
+        var rsModelList = await _clientService.GetArchivedClientsAsync();
 
-            return Ok(rsModelList);
-        }
-        catch (Exception ex)
-        {
-            await LogService.WriteErrorLogAsync($"Internal server exception during archived Clients getting.\n{ex.Message}\n");
-            return StatusCode(500, $"Internal server exception during archived Clients getting: {ex.Message}.");
-        }
+        return Ok(rsModelList);
     }
 
     [HttpPut("update")]
     public async Task<IActionResult> UpdateClientAsync(UpdateClientRqModel rqModel)
     {
-        try
-        {
-            var rsModel = await _clientService.UpdateClientAsync(rqModel);
+        var rsModel = await _clientService.UpdateClientAsync(rqModel);
 
-            return Ok(rsModel);
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return StatusCode(404, $"Not Found exception during Client updating: {ex.Message}.");
-        }
-        catch (Exception ex)
-        {
-            await LogService.WriteErrorLogAsync($"Internal server exception during Client updating.\n{ex.Message}\n");
-            return StatusCode(500, $"Internal server exception during Client updating: {ex.Message}.");
-        }
+        return Ok(rsModel);
     }
 
     [HttpPut("update-state")]
     public async Task<IActionResult> UpdateClientStateByIdAsync(Guid id)
     {
-        try
-        {
-            var result = await _clientService.UpdateClientStateByIdAsync(id);
+        var result = await _clientService.UpdateClientStateByIdAsync(id);
 
-            return Ok(result);
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return StatusCode(404, $"Not Found exception during updating Client state: {ex.Message}.");
-        }
-        catch (Exception ex)
-        {
-            await LogService.WriteErrorLogAsync($"Internal server exception during updating Client state.\n{ex.Message}\n");
-            return StatusCode(500, $"Internal server exception during updating Client state: {ex.Message}.");
-        }
+        return Ok(result);
     }
 
     [HttpDelete("delete")]
     public async Task<IActionResult> DeleteClientByIdAsync(Guid id)
     {
-        try
-        {
-            var result = await _clientService.DeleteClientByIdAsync(id);
+        var result = await _clientService.DeleteClientByIdAsync(id);
 
-            return Ok(result);
-        }
-        catch (EntityNotFoundException ex)
-        {
-            return StatusCode(404, $"Not Found exception during deleting Client: {ex.Message}.");
-        }
-        catch (EntityHasIncludesException ex)
-        {
-            return StatusCode(409, $"Conflict exception during deleting Client: {ex.Message}.");
-        }
-        catch (Exception ex)
-        {
-            await LogService.WriteErrorLogAsync($"Internal server exception during deleting Client.\n{ex.Message}\n");
-            return StatusCode(500, $"Internal server exception during deleting Client: {ex.Message}.");
-        }
+        return Ok(result);
     }
 }
