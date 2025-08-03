@@ -12,8 +12,8 @@ using StorageManagerServer.Dal;
 namespace StorageManagerServer.Dal.Migrations
 {
     [DbContext(typeof(StorageDbContext))]
-    [Migration("20250802114509_InitDataBase")]
-    partial class InitDataBase
+    [Migration("20250803123457_InitDatabase")]
+    partial class InitDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -208,6 +208,9 @@ namespace StorageManagerServer.Dal.Migrations
                     b.Property<string>("Number")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("ShipmentDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("timestamp with time zone");

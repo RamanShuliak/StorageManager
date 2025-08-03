@@ -64,11 +64,11 @@ public class ReceiptDocumentRepository(
         if (rqModel.DocNumbers.Any())
             query = query.Where(d => rqModel.DocNumbers.Any(n => d.Number.Contains(n)));
 
-        if (rqModel.ReceiptFromDate.HasValue)
-            query = query.Where(d => d.ReceiptDate >= rqModel.ReceiptFromDate.Value);
+        if (rqModel.FromDate.HasValue)
+            query = query.Where(d => d.ReceiptDate >= rqModel.FromDate.Value);
 
-        if (rqModel.ReceiptToDate.HasValue)
-            query = query.Where(d => d.ReceiptDate <= rqModel.ReceiptToDate.Value);
+        if (rqModel.ToDate.HasValue)
+            query = query.Where(d => d.ReceiptDate <= rqModel.ToDate.Value);
 
         if (rqModel.ResourceIds.Any())
             query = query.Where(d => d.ReceiptResources

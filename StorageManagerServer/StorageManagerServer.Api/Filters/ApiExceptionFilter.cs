@@ -73,12 +73,26 @@ public class ApiExceptionFilter : IAsyncExceptionFilter
                 await LogService.WriteWarningLogAsync($"NegativeBalanceException:\n{ex.Message}\n");
                 break;
 
+            case EmptyShipmentDocumentException ex:
+                var emptyShipmentDocumentPayload = new
+                {
+                    documentNumber = ex.DocumentNumber,
+                    message = ex.Message
+                };
+                context.Result = new BadRequestObjectResult(emptyShipmentDocumentPayload);
+                context.ExceptionHandled = true;
+                await LogService.WriteWarningLogAsync($"EmptyShipmentDocumentException:\n{ex.Message}\n");
+                break;
+
             default:
                 var internalServerException = context.Exception;
 
+                var messageToUse = internalServerException.InnerException?.Message
+                                   ?? internalServerException.Message;
+
                 var internalServerErrorPayload = new
                 {
-                    message = internalServerException.Message
+                    message = messageToUse
                 };
 
                 context.Result = new ObjectResult(internalServerErrorPayload)
@@ -87,7 +101,7 @@ public class ApiExceptionFilter : IAsyncExceptionFilter
                 };
                 context.ExceptionHandled = true;
 
-                await LogService.WriteErrorLogAsync($"Internal server exception:\n{internalServerException.Message}\n");
+                await LogService.WriteErrorLogAsync($"Internal server exception:\n{messageToUse}\n");
                 break;
         }
     }

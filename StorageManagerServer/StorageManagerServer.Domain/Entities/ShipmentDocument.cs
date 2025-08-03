@@ -3,6 +3,7 @@
 public class ShipmentDocument : BaseEntity
 {
     public required string Number { get; set; }
+    public DateTime ShipmentDate { get; set; }
     public bool IsSigned { get; set; }
 
     public Guid ClientId { get; set; }

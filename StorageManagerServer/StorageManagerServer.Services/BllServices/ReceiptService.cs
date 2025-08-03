@@ -88,7 +88,7 @@ public class ReceiptService(
             changeBalanceDtoList.Add(await DeleteResourceByIdAsync(ri));
 
         if(changeBalanceDtoList.Any())
-            await ChangeBalanceListAsync(changeBalanceDtoList);
+            await _balanceService.ChangeBalanceListAsync(changeBalanceDtoList);
 
         document.Number = rqModel.Number;
         document.ReceiptDate = rqModel.ReceiptDate;
@@ -219,47 +219,6 @@ public class ReceiptService(
         };
 
         return dto;
-    }
-
-    private async Task<int> ChangeBalanceListAsync(List<ChangeBalanceDto> dtoList)
-    {
-        var groupedChanges = dtoList
-            .GroupBy(x => new { x.ResourceId, x.MeasureId })
-            .Select(g => new
-            {
-                g.Key.ResourceId,
-                g.Key.MeasureId,
-                TotalChange = g.Sum(x => x.AmountChange)
-            })
-            .ToList();
-
-        int processedGroups = 0;
-
-        foreach (var group in groupedChanges)
-        {
-            if (group.TotalChange == 0)
-                continue;
-
-            var updateDto = new UpdateBalanceDto
-            {
-                ResourceId = group.ResourceId,
-                MeasureId = group.MeasureId,
-                Amount = Math.Abs(group.TotalChange)
-            };
-
-            if (group.TotalChange < 0)
-            {
-                await _balanceService.ReduceBalanceAsync(updateDto);
-            }
-            else
-            {
-                await _balanceService.IncreaseBalanceAsync(updateDto);
-            }
-
-            processedGroups++;
-        }
-
-        return processedGroups;
     }
     #endregion
 }

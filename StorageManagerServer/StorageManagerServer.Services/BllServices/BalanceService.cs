@@ -13,6 +13,7 @@ public interface IBalanceService
             GetBalanceListByParamsRqModel rqModel);
     Task<Balance> IncreaseBalanceAsync(UpdateBalanceDto dto);
     Task<Balance> ReduceBalanceAsync(UpdateBalanceDto dto);
+    Task<int> ChangeBalanceListAsync(List<ChangeBalanceDto> dtoList);
 }
 
 public class BalanceService(
@@ -77,5 +78,46 @@ public class BalanceService(
         }
 
         return balance;
+    }
+
+    public async Task<int> ChangeBalanceListAsync(List<ChangeBalanceDto> dtoList)
+    {
+        var groupedChanges = dtoList
+            .GroupBy(x => new { x.ResourceId, x.MeasureId })
+            .Select(g => new
+            {
+                g.Key.ResourceId,
+                g.Key.MeasureId,
+                TotalChange = g.Sum(x => x.AmountChange)
+            })
+            .ToList();
+
+        int processedGroups = 0;
+
+        foreach (var group in groupedChanges)
+        {
+            if (group.TotalChange == 0)
+                continue;
+
+            var updateDto = new UpdateBalanceDto
+            {
+                ResourceId = group.ResourceId,
+                MeasureId = group.MeasureId,
+                Amount = Math.Abs(group.TotalChange)
+            };
+
+            if (group.TotalChange < 0)
+            {
+                await ReduceBalanceAsync(updateDto);
+            }
+            else
+            {
+                await IncreaseBalanceAsync(updateDto);
+            }
+
+            processedGroups++;
+        }
+
+        return processedGroups;
     }
 }
