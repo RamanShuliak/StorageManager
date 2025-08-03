@@ -9,7 +9,8 @@ public interface IClientRepository
     Task<Client?> GetClientByIdAsync(Guid id);
     Task<List<Client>> GetActiveClientsAsync();
     Task<List<Client>> GetArchivedClientsAsync();
-    Task<bool> IsClientExistAsync(string clientName);
+    Task<bool> IsClientExistByNameAsync(string clientName);
+    Task<bool> IsClientExistByIdAsync(Guid id);
     Task<bool> IsClientHasIncludesByIdAsync(Guid id);
     void UpdateClient(Client client);
     void DeleteClient(Client client);
@@ -43,10 +44,15 @@ public class ClientRepository(
         .Select(c => c)
         .ToListAsync();
 
-    public async Task<bool> IsClientExistAsync(string clientName)
+    public async Task<bool> IsClientExistByNameAsync(string clientName)
         => await _dbContext.Clients
         .AsNoTracking()
         .AnyAsync(c => c.Name.Equals(clientName));
+
+    public async Task<bool> IsClientExistByIdAsync(Guid id)
+        => await _dbContext.Clients
+        .AsNoTracking()
+        .AnyAsync(c => c.Id.Equals(id));
 
     public async Task<bool> IsClientHasIncludesByIdAsync(Guid id)
         => await _dbContext.ShipmentDocuments

@@ -39,6 +39,8 @@ public class ReceiptService(
         {
             foreach (var rr in rqModel.Resources)
             {
+                await CheckIsResourceAndMeasureExistByIdAsync(rr.ResourceId, rr.MeasureId);
+
                 var balanceDto = new UpdateBalanceDto()
                 {
                     Amount = rr.Amount,
@@ -132,6 +134,8 @@ public class ReceiptService(
         CreateReceiptResourceRqModel rqModel,
         Guid documentId)
     {
+        await CheckIsResourceAndMeasureExistByIdAsync(rqModel.ResourceId, rqModel.MeasureId);
+
         var resource = _mapper.Map<ReceiptResource>(rqModel);
 
         resource.DocumentId = documentId;
@@ -173,6 +177,8 @@ public class ReceiptService(
         }
         else
         {
+            await CheckIsResourceAndMeasureExistByIdAsync(rqModel.ResourceId, rqModel.MeasureId);
+
             var currentBalanceDto = new ChangeBalanceDto()
             {
                 AmountChange = 0 - resource.Amount,
@@ -219,6 +225,23 @@ public class ReceiptService(
         };
 
         return dto;
+    }
+
+    private async Task<bool> CheckIsResourceAndMeasureExistByIdAsync(
+        Guid resourceId,
+        Guid measureId)
+    {
+        var isResourceExist = await _uoW.Resources.IsResourceExistByIdAsync(resourceId);
+
+        if(!isResourceExist)
+            throw new EntityNotFoundException("Resource", "Id", resourceId.ToString());
+
+        var isMeasureExist = await _uoW.Measures.IsMeasureExistByIdAsync(measureId);
+
+        if(!isMeasureExist)
+            throw new EntityNotFoundException("Measure", "Id", measureId.ToString());
+
+        return true;
     }
     #endregion
 }

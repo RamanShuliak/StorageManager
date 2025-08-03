@@ -34,6 +34,11 @@ public class ShipmentService(
         if(!rqModel.Resources.Any())
             throw new EmptyShipmentDocumentException(rqModel.Number);
 
+        await IsClientExistByIdAsync(rqModel.ClientId);
+
+        foreach(var sr in rqModel.Resources)
+            await CheckIsResourceAndMeasureExistByIdAsync(sr.ResourceId, sr.MeasureId);
+
         var document = _mapper.Map<ShipmentDocument>(rqModel);
 
         await _uoW.ShipmentDocuments.CreateDocumentAsync(document);
@@ -61,6 +66,8 @@ public class ShipmentService(
 
         if (document == null)
             throw new EntityNotFoundException("ShipmentDocument", "Id", rqModel.Id.ToString());
+
+        await IsClientExistByIdAsync(rqModel.ClientId);
 
         var updatedDate = DateTime.UtcNow;
 
@@ -132,6 +139,8 @@ public class ShipmentService(
         CreateShipmentResourceRqModel rqModel,
         Guid documentId)
     {
+        await CheckIsResourceAndMeasureExistByIdAsync(rqModel.ResourceId, rqModel.MeasureId);
+
         var resource = _mapper.Map<ShipmentResource>(rqModel);
 
         resource.DocumentId = documentId;
@@ -173,6 +182,8 @@ public class ShipmentService(
         }
         else
         {
+            await CheckIsResourceAndMeasureExistByIdAsync(rqModel.ResourceId, rqModel.MeasureId);
+
             var currentBalanceDto = new ChangeBalanceDto()
             {
                 AmountChange = resource.Amount,
@@ -241,6 +252,33 @@ public class ShipmentService(
         }
 
         return dtoList;
+    }
+
+    private async Task<bool> CheckIsResourceAndMeasureExistByIdAsync(
+        Guid resourceId,
+        Guid measureId)
+    {
+        var isResourceExist = await _uoW.Resources.IsResourceExistByIdAsync(resourceId);
+
+        if (!isResourceExist)
+            throw new EntityNotFoundException("Resource", "Id", resourceId.ToString());
+
+        var isMeasureExist = await _uoW.Measures.IsMeasureExistByIdAsync(measureId);
+
+        if (!isMeasureExist)
+            throw new EntityNotFoundException("Measure", "Id", measureId.ToString());
+
+        return true;
+    }
+
+    private async Task<bool> IsClientExistByIdAsync(Guid id)
+    {
+        var isClientExist = await _uoW.Clients.IsClientExistByIdAsync(id);
+
+        if(!isClientExist)
+            throw new EntityNotFoundException("Client", "Id", id.ToString());
+
+        return true;
     }
     #endregion
 }

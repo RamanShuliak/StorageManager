@@ -24,7 +24,7 @@ public class ClientService(
 {
     public async Task<ClientRsModel> CreateClientAsync(CreateClientRqModel rqModel)
     {
-        var isClientExist = await _uoW.Clients.IsClientExistAsync(rqModel.Name);
+        var isClientExist = await _uoW.Clients.IsClientExistByNameAsync(rqModel.Name);
 
         if (isClientExist)
             throw new EntityAlreadyExistsException("Client", "Name", rqModel.Name);
