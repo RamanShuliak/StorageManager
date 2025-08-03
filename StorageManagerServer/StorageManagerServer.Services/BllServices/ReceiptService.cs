@@ -76,14 +76,19 @@ public class ReceiptService(
 
         var updatedDate = DateTime.UtcNow;
 
+        var changeBalanceDtoList = new List<ChangeBalanceDto>();
+
         foreach (var rr in rqModel.CreateResources)
-            await CreateResourceAsync(rr, document.Id);
+            changeBalanceDtoList.Add(await CreateResourceAsync(rr, document.Id));
 
         foreach (var rr in rqModel.UpdateResources)
-            await UpdateResourceAsync(rr, updatedDate);
+            changeBalanceDtoList.AddRange(await UpdateResourceAsync(rr, updatedDate));
 
         foreach(var ri in rqModel.DeleteResourceIds)
-            await DeleteResourceByIdAsync(ri);
+            changeBalanceDtoList.Add(await DeleteResourceByIdAsync(ri));
+
+        if(changeBalanceDtoList.Any())
+            await ChangeBalanceListAsync(changeBalanceDtoList);
 
         document.Number = rqModel.Number;
         document.ReceiptDate = rqModel.ReceiptDate;
@@ -123,70 +128,7 @@ public class ReceiptService(
     #endregion
 
     #region PrivateMethods
-    private async Task<int> UpdateResourceAsync(
-        UpdateReceiptResourceRqModel rqModel,
-        DateTime updatedDate)
-    {
-        var resource = await _uoW.ReceiptResources.GetResourceByIdAsync(rqModel.Id);
-
-        if (resource == null)
-            throw new EntityNotFoundException("ReceiptResource", "Id", rqModel.Id.ToString());
-
-        if (resource.MeasureId.Equals(rqModel.MeasureId)
-            && resource.ResourceId.Equals(rqModel.ResourceId))
-        {
-            var balanceDto = new UpdateBalanceDto()
-            {
-                Amount = 0,
-                ResourceId = resource.ResourceId,
-                MeasureId = resource.MeasureId
-            };
-
-            if (resource.Amount > rqModel.Amount)
-            {
-                balanceDto.Amount = resource.Amount - rqModel.Amount;
-
-                await _balanceService.ReduceBalanceAsync(balanceDto);
-            }
-            else
-            {
-                balanceDto.Amount = rqModel.Amount - resource.Amount;
-
-                await _balanceService.IncreaseBalanceAsync(balanceDto);
-            }
-        }
-        else
-        {
-            var currentBalanceDto = new UpdateBalanceDto()
-            {
-                Amount = resource.Amount,
-                ResourceId = resource.ResourceId,
-                MeasureId = resource.MeasureId
-            };
-
-            await _balanceService.ReduceBalanceAsync(currentBalanceDto);
-
-            var newBalanceDto = new UpdateBalanceDto()
-            {
-                Amount = rqModel.Amount,
-                ResourceId = rqModel.ResourceId,
-                MeasureId = rqModel.MeasureId
-            };
-
-            resource.ResourceId = rqModel.ResourceId;
-            resource.MeasureId = rqModel.MeasureId;
-
-            await _balanceService.IncreaseBalanceAsync(newBalanceDto);
-        }
-
-        resource.Amount = rqModel.Amount;
-        resource.UpdatedDate = updatedDate;
-        _uoW.ReceiptResources.UpdateResource(resource);
-
-        return 1;
-    }
-
-    private async Task<int> CreateResourceAsync(
+    private async Task<ChangeBalanceDto> CreateResourceAsync(
         CreateReceiptResourceRqModel rqModel,
         Guid documentId)
     {
@@ -196,19 +138,70 @@ public class ReceiptService(
 
         await _uoW.ReceiptResources.CreateResourceAsync(resource);
 
-        var balanceDto = new UpdateBalanceDto()
+        var dto = new ChangeBalanceDto()
         {
-            Amount = rqModel.Amount,
+            AmountChange = rqModel.Amount,
             ResourceId = rqModel.ResourceId,
             MeasureId = rqModel.MeasureId
         };
 
-        await _balanceService.IncreaseBalanceAsync(balanceDto);
-
-        return 1;
+        return dto;
     }
 
-    private async Task<int> DeleteResourceByIdAsync(
+    private async Task<List<ChangeBalanceDto>> UpdateResourceAsync(
+        UpdateReceiptResourceRqModel rqModel,
+        DateTime updatedDate)
+    {
+        var resource = await _uoW.ReceiptResources.GetResourceByIdAsync(rqModel.Id);
+
+        if (resource == null)
+            throw new EntityNotFoundException("ReceiptResource", "Id", rqModel.Id.ToString());
+
+        var dtoList = new List<ChangeBalanceDto>();
+
+        if (resource.MeasureId.Equals(rqModel.MeasureId)
+            && resource.ResourceId.Equals(rqModel.ResourceId))
+        {
+            var dto = new ChangeBalanceDto()
+            {
+                AmountChange = rqModel.Amount - resource.Amount,
+                ResourceId = resource.ResourceId,
+                MeasureId = resource.MeasureId
+            };
+
+            dtoList.Add(dto);
+        }
+        else
+        {
+            var currentBalanceDto = new ChangeBalanceDto()
+            {
+                AmountChange = 0 - resource.Amount,
+                ResourceId = resource.ResourceId,
+                MeasureId = resource.MeasureId
+            };
+
+            var newBalanceDto = new ChangeBalanceDto()
+            {
+                AmountChange = rqModel.Amount,
+                ResourceId = rqModel.ResourceId,
+                MeasureId = rqModel.MeasureId
+            };
+
+            dtoList.Add(currentBalanceDto);
+            dtoList.Add(newBalanceDto);
+
+            resource.ResourceId = rqModel.ResourceId;
+            resource.MeasureId = rqModel.MeasureId;
+        }
+
+        resource.Amount = rqModel.Amount;
+        resource.UpdatedDate = updatedDate;
+        _uoW.ReceiptResources.UpdateResource(resource);
+
+        return dtoList;
+    }
+
+    private async Task<ChangeBalanceDto> DeleteResourceByIdAsync(
         Guid id)
     {
         var resource = await _uoW.ReceiptResources.GetResourceByIdAsync(id);
@@ -218,16 +211,55 @@ public class ReceiptService(
 
         _uoW.ReceiptResources.DeleteResource(resource);
 
-        var balanceDto = new UpdateBalanceDto()
+        var dto = new ChangeBalanceDto()
         {
-            Amount = resource.Amount,
+            AmountChange = 0 - resource.Amount,
             ResourceId = resource.ResourceId,
             MeasureId = resource.MeasureId
         };
 
-        await _balanceService.ReduceBalanceAsync(balanceDto);
+        return dto;
+    }
 
-        return 1;
+    private async Task<int> ChangeBalanceListAsync(List<ChangeBalanceDto> dtoList)
+    {
+        var groupedChanges = dtoList
+            .GroupBy(x => new { x.ResourceId, x.MeasureId })
+            .Select(g => new
+            {
+                g.Key.ResourceId,
+                g.Key.MeasureId,
+                TotalChange = g.Sum(x => x.AmountChange)
+            })
+            .ToList();
+
+        int processedGroups = 0;
+
+        foreach (var group in groupedChanges)
+        {
+            if (group.TotalChange == 0)
+                continue;
+
+            var updateDto = new UpdateBalanceDto
+            {
+                ResourceId = group.ResourceId,
+                MeasureId = group.MeasureId,
+                Amount = Math.Abs(group.TotalChange)
+            };
+
+            if (group.TotalChange < 0)
+            {
+                await _balanceService.ReduceBalanceAsync(updateDto);
+            }
+            else
+            {
+                await _balanceService.IncreaseBalanceAsync(updateDto);
+            }
+
+            processedGroups++;
+        }
+
+        return processedGroups;
     }
     #endregion
 }
