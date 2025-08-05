@@ -7,7 +7,8 @@ public interface IShipmentResourceRepository
 {
     Task<ShipmentResource> CreateResourceAsync(ShipmentResource resource);
     Task<ShipmentResource?> GetResourceByIdAsync(Guid id);
-    Task<List<ShipmentResource>> GetResourceListBuDocumentIdAsync(Guid id);
+    Task<List<ShipmentResource>> GetResourceListByDocumentIdAsync(Guid id);
+    Task<int> GetResourceCountByDocumentIdAsync(Guid id);
     void UpdateResource(ShipmentResource resource);
     void DeleteResource(ShipmentResource resource);
 }
@@ -24,11 +25,17 @@ public class ShipmentResourceRepository(
         .Where(e => e.Id.Equals(id))
         .FirstOrDefaultAsync();
 
-    public async Task<List<ShipmentResource>> GetResourceListBuDocumentIdAsync(Guid id)
+    public async Task<List<ShipmentResource>> GetResourceListByDocumentIdAsync(Guid id)
         => await _dbContext.ShipmentResources
         .AsNoTracking()
         .Where(e => e.DocumentId.Equals(id))
         .ToListAsync();
+
+    public async Task<int> GetResourceCountByDocumentIdAsync(Guid id)
+        => await _dbContext.ShipmentResources
+        .AsNoTracking()
+        .Where(e => e.DocumentId.Equals(id))
+        .CountAsync();
 
     public void UpdateResource(ShipmentResource resource)
         => _dbContext.ShipmentResources.Update(resource);

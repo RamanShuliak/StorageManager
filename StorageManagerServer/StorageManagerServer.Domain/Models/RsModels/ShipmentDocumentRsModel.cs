@@ -7,6 +7,7 @@ public class ShipmentDocumentRsModel
     public DateTime ShipmentDate { get; set; }
     public bool IsSigned { get; set; }
     public Guid ClientId { get; set; }
+    public required string ClientName { get; set; }
 
     public List<ShipmentResourceRsModel> Resources { get; set; } = new List<ShipmentResourceRsModel>();
 }

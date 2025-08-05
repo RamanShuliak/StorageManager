@@ -20,6 +20,14 @@ public class ReceiptController(
         return Ok(result);
     }
 
+    [HttpGet("get-number-list")]
+    public async Task<IActionResult> GetDocumentNumberListByParamsAsync()
+    {
+        var numberList = await _receiptService.GetDocumentNumberListAsync();
+
+        return Ok(numberList);
+    }
+
     [HttpGet("get-list")]
     public async Task<IActionResult> GetDocumentListByParamsAsync(
         [FromQuery]GetDocumentListByParamsRqModel rqModel)

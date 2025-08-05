@@ -11,6 +11,7 @@ namespace StorageManagerServer.Services.BllServices;
 public interface IShipmentService
 {
     Task<int> CreateDocumentAsync(CreateShipmentDocumentRqModel rqModel);
+    Task<List<string>> GetDocumentNumberListAsync();
     Task<List<ShipmentDocumentRsModel>> GetDocumentListByParamsAsync(
             GetDocumentListByParamsRqModel rqModel);
     Task<ShipmentDocumentRsModel> GetDocumentByIdAsync(Guid id);
@@ -46,6 +47,9 @@ public class ShipmentService(
         return await _uoW.SaveChangesAsync();
     }
 
+    public async Task<List<string>> GetDocumentNumberListAsync()
+        => await _uoW.ShipmentDocuments.GetDocumentNumberListAsync();
+
     public async Task<List<ShipmentDocumentRsModel>> GetDocumentListByParamsAsync(
         GetDocumentListByParamsRqModel rqModel)
         => await _uoW.ShipmentDocuments.GetDocumentListWithAllIncludesByParamsAsync(rqModel);
@@ -69,18 +73,29 @@ public class ShipmentService(
 
         await IsClientExistByIdAsync(rqModel.ClientId);
 
+        var resourceCount = await _uoW.ShipmentResources.GetResourceCountByDocumentIdAsync(rqModel.Id);
+
         var updatedDate = DateTime.UtcNow;
 
         var changeBalanceDtoList = new List<ChangeBalanceDto>();
 
         foreach (var rr in rqModel.CreateResources)
+        {
             changeBalanceDtoList.Add(await CreateResourceAsync(rr, document.Id));
+            resourceCount++;
+        }
 
         foreach (var rr in rqModel.UpdateResources)
             changeBalanceDtoList.AddRange(await UpdateResourceAsync(rr, updatedDate));
 
         foreach (var ri in rqModel.DeleteResourceIds)
+        {
             changeBalanceDtoList.Add(await DeleteResourceByIdAsync(ri));
+            resourceCount--;
+        }
+
+        if (resourceCount <= 0)
+            throw new EmptyShipmentDocumentException(rqModel.Number);
 
         if (rqModel.IsSigned
             && document.IsSigned)
@@ -235,7 +250,7 @@ public class ShipmentService(
     private async Task<List<ChangeBalanceDto>> GetChangeBalanceDtoListFromExistResourceListAsync(
         Guid documentId)
     {
-        var resources = await _uoW.ShipmentResources.GetResourceListBuDocumentIdAsync(documentId);
+        var resources = await _uoW.ShipmentResources.GetResourceListByDocumentIdAsync(documentId);
 
         var dtoList = new List<ChangeBalanceDto>();
 

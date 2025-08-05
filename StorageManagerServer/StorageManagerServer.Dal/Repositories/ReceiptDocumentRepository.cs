@@ -8,6 +8,7 @@ namespace StorageManagerServer.Dal.Repositories;
 public interface IReceiptDocumentRepository
 {
     Task<ReceiptDocument> CreateDocumentAsync(ReceiptDocument document);
+    Task<List<string>> GetDocumentNumberListAsync();
     Task<ReceiptDocument?> GetDocumentWithIncludesByIdAsync(Guid id);
     Task<ReceiptDocumentRsModel?> GetDocumentWithAllIncludesByIdAsync(Guid id);
     Task<List<ReceiptDocumentRsModel>> GetDocumentListWithAllIncludesByParamsAsync(
@@ -24,6 +25,12 @@ public class ReceiptDocumentRepository(
     public async Task<ReceiptDocument> CreateDocumentAsync(ReceiptDocument document)
         => (await _dbContext.ReceiptDocuments
         .AddAsync(document)).Entity;
+
+    public async Task<List<string>> GetDocumentNumberListAsync()
+        => await _dbContext.ReceiptDocuments
+        .AsNoTracking()
+        .Select(e => e.Number)
+        .ToListAsync();
 
     public async Task<ReceiptDocument?> GetDocumentWithIncludesByIdAsync(Guid id)
         => await _dbContext.ReceiptDocuments

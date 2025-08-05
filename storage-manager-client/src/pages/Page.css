@@ -1,0 +1,134 @@
+.page {
+  margin-left: 250px;
+  padding: 20px;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.page-header {
+  margin-bottom: 20px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 16px;
+  color: #666;
+}
+
+.page-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.form-container {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background: white;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+  margin-top: 30px;
+}
+
+.resource-table {
+  margin-top: 20px;
+}
+
+.resource-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.resource-table th,
+.resource-table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.resource-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.resource-table .action-cell {
+  width: 50px;
+  text-align: center;
+}
+
+.resource-table .action-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resource-table .add-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.resource-table .delete-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.resource-table .add-btn:hover {
+  background-color: #218838;
+}
+
+.resource-table .delete-btn:hover {
+  background-color: #c82333;
+} 

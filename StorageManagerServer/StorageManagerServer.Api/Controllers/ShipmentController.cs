@@ -18,6 +18,14 @@ public class ShipmentController(
         return Ok(result);
     }
 
+    [HttpGet("get-number-list")]
+    public async Task<IActionResult> GetDocumentNumberListByParamsAsync()
+    {
+        var numberList = await _shipmentService.GetDocumentNumberListAsync();
+
+        return Ok(numberList);
+    }
+
     [HttpGet("get-list")]
     public async Task<IActionResult> GetDocumentListByParamsAsync(
         [FromQuery] GetDocumentListByParamsRqModel rqModel)

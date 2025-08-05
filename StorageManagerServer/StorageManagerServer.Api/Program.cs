@@ -20,6 +20,16 @@ builder.Services
         options.Filters.Add<ApiExceptionFilter>();
     });
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddServices();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -54,10 +64,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors();
 app.UseAuthorization();
-
-
 app.MapControllers();
 
 app.Run();

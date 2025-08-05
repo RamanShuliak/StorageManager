@@ -11,6 +11,7 @@ namespace StorageManagerServer.Services.BllServices;
 public interface IReceiptService
 {
     Task<int> CreateDocumentAsync(CreateReceiptDocumentRqModel rqModel);
+    Task<List<string>> GetDocumentNumberListAsync();
     Task<List<ReceiptDocumentRsModel>> GetDocumentListByParamsAsync(
             GetDocumentListByParamsRqModel rqModel);
     Task<ReceiptDocumentRsModel> GetDocumentByIdAsync(Guid id);
@@ -54,6 +55,9 @@ public class ReceiptService(
 
         return await _uoW.SaveChangesAsync();
     }
+
+    public async Task<List<string>> GetDocumentNumberListAsync()
+        => await _uoW.ReceiptDocuments.GetDocumentNumberListAsync();
 
     public async Task<List<ReceiptDocumentRsModel>> GetDocumentListByParamsAsync(
         GetDocumentListByParamsRqModel rqModel)

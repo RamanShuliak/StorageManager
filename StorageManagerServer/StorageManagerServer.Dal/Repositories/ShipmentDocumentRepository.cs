@@ -8,6 +8,7 @@ namespace StorageManagerServer.Dal.Repositories;
 public interface IShipmentDocumentRepository
 {
     Task<ShipmentDocument> CreateDocumentAsync(ShipmentDocument document);
+    Task<List<string>> GetDocumentNumberListAsync();
     Task<ShipmentDocument?> GetDocumentWithIncludesByIdAsync(Guid id);
     Task<ShipmentDocumentRsModel?> GetDocumentWithAllIncludesByIdAsync(Guid id);
     Task<List<ShipmentDocumentRsModel>> GetDocumentListWithAllIncludesByParamsAsync(
@@ -24,6 +25,12 @@ public class ShipmentDocumentRepository(
     public async Task<ShipmentDocument> CreateDocumentAsync(ShipmentDocument document)
         => (await _dbContext.ShipmentDocuments
         .AddAsync(document)).Entity;
+
+    public async Task<List<string>> GetDocumentNumberListAsync()
+        => await _dbContext.ShipmentDocuments
+        .AsNoTracking()
+        .Select(e => e.Number)
+        .ToListAsync();
 
     public async Task<ShipmentDocument?> GetDocumentWithIncludesByIdAsync(Guid id)
         => await _dbContext.ShipmentDocuments
@@ -42,6 +49,7 @@ public class ShipmentDocumentRepository(
             ShipmentDate = doc.ShipmentDate,
             IsSigned = doc.IsSigned,
             ClientId = doc.ClientId,
+            ClientName = doc.Client!.Name,
             Resources = doc.ShipmentResources
                 .Select(rr => new ShipmentResourceRsModel
                 {
@@ -88,6 +96,7 @@ public class ShipmentDocumentRepository(
                 ShipmentDate = doc.ShipmentDate,
                 IsSigned = doc.IsSigned,
                 ClientId = doc.ClientId,
+                ClientName = doc.Client!.Name,
                 Resources = doc.ShipmentResources
                     .Select(rr => new ShipmentResourceRsModel
                     {
