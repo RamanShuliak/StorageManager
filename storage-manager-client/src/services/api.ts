@@ -1,4 +1,5 @@
 import axios from 'axios';
+import qs from 'qs';
 import {
   Client,
   Measure,
@@ -9,14 +10,13 @@ import {
   CreateReceiptDocumentRequest,
   CreateShipmentDocumentRequest,
   UpdateReceiptDocumentRequest,
-  UpdateReceiptResourceRequest,
+  UpdateShipmentDocumentRequest,
   UpdateClientRequest,
   UpdateResourceRequest,
   UpdateMeasureRequest,
   BalanceFilters,
   ReceiptFilters,
-  ShipmentFilters,
-  UpdateShipmentDocumentRequest
+  ShipmentFilters
 } from '../types';
 
 const API_BASE_URL = 'https://localhost:7285/api';
@@ -30,26 +30,30 @@ const api = axios.create({
 
 // Balance API
 export const balanceApi = {
-  getBalances: (filters?: BalanceFilters) => 
-    api.get<Balance[]>('/balance/get-list', { 
+  getBalances: (filters?: BalanceFilters) =>
+    api.get<Balance[]>('/balance/get-list', {
       params: {
-        ResourceIds: filters?.resourceIds || [],
-        MeasureIds: filters?.measureIds || []
-      }
+        ResourceIds: filters?.resourceIds,
+        MeasureIds: filters?.measureIds
+      },
+      paramsSerializer: params => 
+        qs.stringify(params, { arrayFormat: 'repeat' })
     }),
 };
 
 // Receipt API
 export const receiptApi = {
-  getReceipts: (filters?: ReceiptFilters) => 
-    api.get<ReceiptDocument[]>('/receipt/get-list', { 
+  getReceipts: (filters?: ReceiptFilters) =>
+    api.get<ReceiptDocument[]>('/receipt/get-list', {
       params: {
-        DocNumbers: filters?.numbers || [],
-        ResourceIds: filters?.resourceIds || [],
-        MeasureIds: filters?.measureIds || [],
-        FromDate: filters?.dateFrom || null,
-        ToDate: filters?.dateTo || null
-      }
+        DocNumbers: filters?.numbers,
+        ResourceIds: filters?.resourceIds,
+        MeasureIds: filters?.measureIds,
+        FromDate: filters?.dateFrom,
+        ToDate: filters?.dateTo
+      },
+      paramsSerializer: params =>
+        qs.stringify(params, { arrayFormat: 'repeat' })
     }),
   getReceiptNumbers: () => 
       api.get<string[]>('/receipt/get-number-list'),
@@ -89,16 +93,18 @@ export const receiptApi = {
 
 // Shipment API
 export const shipmentApi = {
-  getShipments: (filters?: ShipmentFilters) => 
-    api.get<ShipmentDocument[]>('/shipment/get-list', { 
+  getShipments: (filters?: ShipmentFilters) =>
+    api.get<ShipmentDocument[]>('/shipment/get-list', {
       params: {
-        DocNumbers: filters?.numbers || [],
-        ResourceIds: filters?.resourceIds || [],
-        MeasureIds: filters?.measureIds || [],
-        ClientIds: filters?.clientIds || [],
-        FromDate: filters?.dateFrom || null,
-        ToDate: filters?.dateTo || null
-      }
+        DocNumbers: filters?.numbers,
+        ResourceIds: filters?.resourceIds,
+        MeasureIds: filters?.measureIds,
+        ClientIds: filters?.clientIds,
+        FromDate: filters?.dateFrom,
+        ToDate: filters?.dateTo
+      },
+      paramsSerializer: params =>
+        qs.stringify(params, { arrayFormat: 'repeat' })
     }),
   getShipmentNumbers: () => 
     api.get<string[]>('/shipment/get-number-list'),

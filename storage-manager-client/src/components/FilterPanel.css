@@ -142,3 +142,33 @@
   background-color: #5a6fd8;
   transform: translateY(-1px);
 }
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+  transform: translateY(-1px);
+}
+
+.btn-warning {
+  background-color: rgb(206, 206, 38);
+  color: white;
+}
+
+.btn-warning:hover {
+  background-color: rgb(163, 163, 29);
+  transform: translateY(-1px);
+}

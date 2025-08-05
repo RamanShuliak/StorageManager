@@ -1,5 +1,5 @@
 .page {
-  margin-left: 250px;
+  margin-left: 25px;
   padding: 20px;
   min-height: 100vh;
   background-color: #f5f5f5;
@@ -72,7 +72,7 @@
   display: flex;
   gap: 10px;
   justify-content: flex-start;
-  margin-top: 30px;
+  margin-bottom: 10px;
 }
 
 .resource-table {
