@@ -3,11 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { resourceApi } from '../services/api';
 import { Resource } from '../types';
 import './Page.css';
+import { useNotification } from "../components/notifications/NotificationContext";
+import { AxiosError } from 'axios';
+import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const ResourceEditPage: React.FC = () => {
+  useFaviconAndTitle('Ресурс', '/icons/logo-icon.png');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const isNew = id === 'new';
+  const isNew = id === undefined;
   
   const [resource, setResource] = useState<Resource>({
     id: '',
@@ -15,6 +19,8 @@ const ResourceEditPage: React.FC = () => {
     isArchived: false
   });
   const [loading, setLoading] = useState(false);
+
+  const { addNotification } = useNotification();
 
   useEffect(() => {
     if (!isNew) {
@@ -27,26 +33,41 @@ const ResourceEditPage: React.FC = () => {
       const response = await resourceApi.getResource(id!);
       setResource(response.data);
     } catch (error) {
-      console.error('Error loading resource:', error);
+      await handleServerExceptions(error);
     }
   };
 
   const handleSave = async () => {
+    if(resource.name === ''){
+      addNotification(
+        "info",
+        `Имя ресурса не может быть пустым`
+      );
+      return;
+    }
     setLoading(true);
     try {
       if (isNew) {
         await resourceApi.createResource({
           name: resource.name
         });
+        addNotification(
+          "success",
+          `Ресурс с именем "${resource.name}" успешно создан`
+        );
       } else {
         await resourceApi.updateResource({
           id: resource.id,
           name: resource.name
         });
+        addNotification(
+          "success",
+          `Ресурс с именем "${resource.name}" успешно изменён`
+        );
       }
       navigate('/resources');
     } catch (error) {
-      console.error('Error saving resource:', error);
+      await handleServerExceptions(error);
     } finally {
       setLoading(false);
     }
@@ -58,9 +79,13 @@ const ResourceEditPage: React.FC = () => {
     if (window.confirm('Вы уверены, что хотите удалить этот ресурс?')) {
       try {
         await resourceApi.deleteResource(resource.id);
+        addNotification(
+          "success",
+          `Ресурс с именем "${resource.name}" успешно удалён`
+        );
         navigate('/resources');
       } catch (error) {
-        console.error('Error deleting resource:', error);
+        await handleServerExceptions(error);
       }
     }
   };
@@ -69,14 +94,69 @@ const ResourceEditPage: React.FC = () => {
     try {
       if (resource.isArchived) {
         await resourceApi.unarchiveResource(resource.id);
+                addNotification(
+          "info",
+          `Ресурс с именем "${resource.name}" разархивирован`
+        );
       } else {
         await resourceApi.archiveResource(resource.id);
+        addNotification(
+          "info",
+          `Ресурс с именем "${resource.name}" архивирован`
+        );
       }
       setResource(prev => ({ ...prev, isArchived: !prev.isArchived }));
+      navigate('/resources');
     } catch (error) {
-      console.error('Error toggling archive status:', error);
+      await handleServerExceptions(error);
     }
   };
+
+  const handleServerExceptions = async (err: unknown) => {
+    const error = err as AxiosError;
+    if (error.response?.status === 409){
+      const payload = error.response.data as {
+        paramValue: string;
+        message: string;
+      };
+      addNotification(
+        "warning",
+        `Ресурс с именем "${payload.paramValue}" уже существует`
+      );
+    }
+    if (error.response?.status === 404){
+      const payload = error.response.data as {
+        message: string;
+      };
+      addNotification(
+        "warning",
+        `Ресурс с именем "${resource.name}" не найден`
+      );
+      console.warn(payload.message);
+    }
+    if (error.response?.status === 423){
+      addNotification(
+        "warning",
+        `Невозможно удалить используемый ресурс из системы`
+      );
+    }
+    if (error.response?.status === 400){
+      addNotification(
+        "warning",
+        `Некорректный запрос к серверу. Обратитесь в техподдержку`
+      );
+    }
+    if (error.response?.status === 500){
+      const payload = error.response.data as {
+        message: string;
+      };
+      addNotification(
+        "error",
+        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
+      );
+      console.error(payload.message);
+    }
+  }
 
   return (
     <div className="page">

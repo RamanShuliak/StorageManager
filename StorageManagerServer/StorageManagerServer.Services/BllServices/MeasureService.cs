@@ -95,6 +95,14 @@ public class MeasureService(
         if (measure == null)
             throw new EntityNotFoundException("Measure", "Id", rqModel.Id.ToString());
 
+        if (!measure.Name.Equals(rqModel.Name))
+        {
+            var isMeasureExistByName = await _uoW.Measures.IsMeasureExistByNameAsync(rqModel.Name);
+
+            if (isMeasureExistByName)
+                throw new EntityAlreadyExistsException("Measure", "Name", rqModel.Name);
+        }
+
         measure.Name = rqModel.Name;
         measure.UpdatedDate = DateTime.UtcNow;
 

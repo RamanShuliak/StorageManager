@@ -3,11 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { measureApi } from '../services/api';
 import { Measure } from '../types';
 import './Page.css';
+import { useNotification } from "../components/notifications/NotificationContext";
+import { AxiosError } from 'axios';
+import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const MeasureEditPage: React.FC = () => {
+  useFaviconAndTitle('Единица измерения', '/icons/logo-icon.png');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const isNew = id === 'new';
+  const isNew = id === undefined;
   
   const [measure, setMeasure] = useState<Measure>({
     id: '',
@@ -15,6 +19,8 @@ const MeasureEditPage: React.FC = () => {
     isArchived: false
   });
   const [loading, setLoading] = useState(false);
+
+  const { addNotification } = useNotification();
 
   useEffect(() => {
     if (!isNew) {
@@ -27,26 +33,41 @@ const MeasureEditPage: React.FC = () => {
       const response = await measureApi.getMeasure(id!);
       setMeasure(response.data);
     } catch (error) {
-      console.error('Error loading measure:', error);
+      await handleServerExceptions(error);
     }
   };
 
   const handleSave = async () => {
+    if(measure.name === ''){
+      addNotification(
+        "info",
+        `Имя единицы измерения не может быть пустым`
+      );
+      return;
+    }
     setLoading(true);
     try {
       if (isNew) {
         await measureApi.createMeasure({
           name: measure.name
         });
+        addNotification(
+          "success",
+          `Единица измерения с именем "${measure.name}" успешно создана`
+        );
       } else {
         await measureApi.updateMeasure({
           id: measure.id,
           name: measure.name
         });
+        addNotification(
+          "success",
+          `Единица измерения с именем "${measure.name}" успешно изменена`
+        );
       }
       navigate('/measures');
     } catch (error) {
-      console.error('Error saving measure:', error);
+      await handleServerExceptions(error);
     } finally {
       setLoading(false);
     }
@@ -58,9 +79,13 @@ const MeasureEditPage: React.FC = () => {
     if (window.confirm('Вы уверены, что хотите удалить эту единицу измерения?')) {
       try {
         await measureApi.deleteMeasure(measure.id);
+        addNotification(
+          "success",
+          `Единица измерения с именем "${measure.name}" успешно удалена`
+        );
         navigate('/measures');
       } catch (error) {
-        console.error('Error deleting measure:', error);
+        await handleServerExceptions(error);
       }
     }
   };
@@ -69,14 +94,69 @@ const MeasureEditPage: React.FC = () => {
     try {
       if (measure.isArchived) {
         await measureApi.unarchiveMeasure(measure.id);
+        addNotification(
+          "info",
+          `Единица измерения с именем "${measure.name}" разархивирована`
+        );
       } else {
         await measureApi.archiveMeasure(measure.id);
+        addNotification(
+          "info",
+          `Единица измерения с именем "${measure.name}" архивирована`
+        );
       }
       setMeasure(prev => ({ ...prev, isArchived: !prev.isArchived }));
+      navigate('/measures');
     } catch (error) {
-      console.error('Error toggling archive status:', error);
+      await handleServerExceptions(error);
     }
   };
+
+  const handleServerExceptions = async (err: unknown) => {
+    const error = err as AxiosError;
+    if (error.response?.status === 409){
+      const payload = error.response.data as {
+        paramValue: string;
+        message: string;
+      };
+      addNotification(
+        "warning",
+        `Единица измерения с именем "${payload.paramValue}" уже существует`
+      );
+    }
+    if (error.response?.status === 404){
+      const payload = error.response.data as {
+        message: string;
+      };
+      addNotification(
+        "warning",
+        `Единица измерения с именем "${measure.name}" не найдена`
+      );
+      console.warn(payload.message);
+    }
+    if (error.response?.status === 423){
+      addNotification(
+        "warning",
+        `Невозможно удалить используемую единицу измерения из системы`
+      );
+    }
+    if (error.response?.status === 400){
+      addNotification(
+        "warning",
+        `Некорректный запрос к серверу. Обратитесь в техподдержку`
+      );
+    }
+    if (error.response?.status === 500){
+      const payload = error.response.data as {
+        message: string;
+      };
+      addNotification(
+        "error",
+        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
+      );
+      console.error(payload.message);
+    }
+  }
 
   return (
     <div className="page">

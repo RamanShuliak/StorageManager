@@ -89,6 +89,14 @@ public class ClientService(
         if (client == null)
             throw new EntityNotFoundException("Client", "Id", rqModel.Id.ToString());
 
+        if (!rqModel.Name.Equals(client.Name))
+        {
+            var isClientExistByName = await _uoW.Clients.IsClientExistByNameAsync(rqModel.Name);
+
+            if (isClientExistByName)
+                throw new EntityAlreadyExistsException("Client", "Name", rqModel.Name);
+        }
+
         client.Name = rqModel.Name;
         client.Address = rqModel.Address;
         client.UpdatedDate = DateTime.UtcNow;

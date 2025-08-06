@@ -25,13 +25,13 @@ public class ApiExceptionFilter : IAsyncExceptionFilter
                 break;
 
             case EntityInUseException ex:
-                var entityInUsePayload = new
+                context.HttpContext.Response.StatusCode = 423;
+                context.Result = new ObjectResult(new
                 {
                     entityType = ex.EntityType,
                     entityId = ex.EntityId,
                     message = ex.Message
-                };
-                context.Result = new ConflictObjectResult(entityInUsePayload);
+                });
                 context.ExceptionHandled = true;
                 await LogService.WriteWarningLogAsync($"EntityInUseException:\n{ex.Message}\n");
                 break;
@@ -56,7 +56,10 @@ public class ApiExceptionFilter : IAsyncExceptionFilter
                     measureId = ex.MeasureId,
                     message = ex.Message
                 };
-                context.Result = new NotFoundObjectResult(balanceNotFoundPayload);
+                context.Result = new ObjectResult(balanceNotFoundPayload)
+                {
+                    StatusCode = StatusCodes.Status410Gone
+                };
                 context.ExceptionHandled = true;
                 await LogService.WriteWarningLogAsync($"BalanceNotFoundException:\n{ex.Message}\n");
                 break;
@@ -68,7 +71,7 @@ public class ApiExceptionFilter : IAsyncExceptionFilter
                     measureId = ex.MeasureId,
                     message = ex.Message
                 };
-                context.Result = new ConflictObjectResult(negativeBalancePayload);
+                context.Result = new UnprocessableEntityObjectResult(negativeBalancePayload);
                 context.ExceptionHandled = true;
                 await LogService.WriteWarningLogAsync($"NegativeBalanceException:\n{ex.Message}\n");
                 break;
@@ -79,7 +82,10 @@ public class ApiExceptionFilter : IAsyncExceptionFilter
                     documentNumber = ex.DocumentNumber,
                     message = ex.Message
                 };
-                context.Result = new BadRequestObjectResult(emptyShipmentDocumentPayload);
+                context.Result = new ObjectResult(emptyShipmentDocumentPayload)
+                {
+                    StatusCode = StatusCodes.Status412PreconditionFailed
+                };
                 context.ExceptionHandled = true;
                 await LogService.WriteWarningLogAsync($"EmptyShipmentDocumentException:\n{ex.Message}\n");
                 break;

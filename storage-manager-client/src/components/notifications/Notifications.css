@@ -1,0 +1,60 @@
+#global-notification-container {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    width: 250px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .global-notification {
+    position: relative;
+    width: 100%;
+    border-radius: 10px;
+    border: solid 1.5px;
+    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    cursor: pointer;
+  }
+  
+  /* Типы уведомлений */
+  .global-notification-error {
+    background-color: #feaaaa;
+    border-color: #c74242;
+  }
+  
+  .global-notification-success {
+    background-color: #cafeaa;
+    border-color: #84c742;
+  }
+  
+  .global-notification-warning {
+    background-color: #feecaa;
+    border-color: #c7ab42;
+  }
+  
+  .global-notification-info {
+    background-color: #aad1fe;
+    border-color: #427fc7;
+  }
+
+  .gn-icon {
+    align-content: center;
+  }
+  
+  .gn-icon-img {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .gn-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    word-break: break-word;
+  }
+  

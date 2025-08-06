@@ -5,8 +5,12 @@ import { ShipmentDocument, Resource, Measure, Client } from '../types';
 import FilterPanel from '../components/FilterPanel';
 import DataTable from '../components/DataTable';
 import './Page.css';
+import { useNotification } from "../components/notifications/NotificationContext";
+import { AxiosError } from 'axios';
+import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const ShipmentsPage: React.FC = () => {
+  useFaviconAndTitle('Отгрузки', '/icons/logo-icon.png');
   const navigate = useNavigate();
   const [shipments, setShipments] = useState<ShipmentDocument[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -20,6 +24,8 @@ const ShipmentsPage: React.FC = () => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const { addNotification } = useNotification();
 
   useEffect(() => {
     console.log('ShipmentsPage useEffect triggered');
@@ -48,7 +54,7 @@ const ShipmentsPage: React.FC = () => {
       
       await loadShipments();
     } catch (error) {
-      console.error('Error loading filters:', error);
+      await handleServerExceptions(error);
     }
   };
 
@@ -77,7 +83,7 @@ const ShipmentsPage: React.FC = () => {
       console.log('Shipments data:', response.data);
       setShipments(response.data || []);
     } catch (error) {
-      console.error('Error loading shipments:', error);
+      await handleServerExceptions(error);
       setShipments([]);
     } finally {
       setLoading(false);
@@ -104,6 +110,34 @@ const ShipmentsPage: React.FC = () => {
 
   console.log('Final tableData:', tableData);
 
+  const handleRowClick = (item: any) => {
+    navigate(`/shipments/${item.shipmentId}`);
+  };
+
+  const handleAddClick = () => {
+    navigate('/shipments/new');
+  };
+
+  const handleServerExceptions = async (err: unknown) => {
+    const error = err as AxiosError;
+    if (error.response?.status === 400){
+      addNotification(
+        "warning",
+        `Некорректный запрос к серверу. Обратитесь в техподдержку`
+      );
+    }
+    if (error.response?.status === 500){
+      const payload = error.response.data as {
+        message: string;
+      };
+      addNotification(
+        "error",
+        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
+      );
+      console.error(payload.message);
+    }
+  }
+
   const columns = [
     { key: 'number', header: 'Номер' },
     { key: 'shipmentDate', header: 'Дата' },
@@ -113,14 +147,6 @@ const ShipmentsPage: React.FC = () => {
     { key: 'measureName', header: 'Единица измерения' },
     { key: 'amount', header: 'Количество' },
   ];
-
-  const handleRowClick = (item: any) => {
-    navigate(`/shipments/${item.shipmentId}`);
-  };
-
-  const handleAddClick = () => {
-    navigate('/shipments/new');
-  };
 
   return (
     <div className="page">

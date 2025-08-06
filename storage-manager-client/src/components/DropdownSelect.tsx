@@ -1,0 +1,68 @@
+import React, { useState, useRef, useEffect } from 'react';
+import './DropdownSelect.css';
+
+interface FilterOption {
+  id: string;
+  name: string;
+}
+
+interface DropdownSelectProps {
+  options: FilterOption[];
+  value: string;
+  onChange: (val: string) => void;
+  placeholder: string;
+}
+
+export const DropdownSelect: React.FC<DropdownSelectProps> = ({
+  options,
+  value,
+  onChange,
+  placeholder,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Закрываем меню при клике вне компонента
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Строим текст для кнопки
+  const selectedOption = options.find(o => o.id === value);
+  const label = selectedOption ? selectedOption.name : placeholder;
+
+  return (
+    <div className="dropdown-select" ref={rootRef}>
+      <button
+        type="button"
+        className="dropdown-toggle"
+        onClick={() => setIsOpen(open => !open)}
+      >
+        {label}
+        <span className="dropdown-arrow" />
+      </button>
+      {isOpen && (
+        <ul className="dropdown-menu">
+          {options.map(opt => (
+            <li
+              key={opt.id}
+              className={`dropdown-item${opt.id === value ? ' active' : ''}`}
+              onClick={() => {
+                onChange(opt.id);
+                setIsOpen(false);
+              }}
+            >
+              {opt.name}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+};

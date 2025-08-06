@@ -181,7 +181,7 @@ export const resourceApi = {
   getResource: (id: string) => 
     api.get<Resource>(`/resource/get?id=${id}`),
   createResource: (data: { name: string }) => 
-    api.post<Resource>('/resource/create', data.name),
+    api.post<Resource>(`/resource/create?resourceName=${data.name}`),
   updateResource: (data: UpdateResourceRequest) => 
     api.put<Resource>('/resource/update', {
       Id: data.id,
@@ -204,7 +204,7 @@ export const measureApi = {
   getMeasure: (id: string) => 
     api.get<Measure>(`/measure/get?id=${id}`),
   createMeasure: (data: { name: string }) => 
-    api.post<Measure>('/measure/create', data.name),
+    api.post<Measure>(`/measure/create?measureName=${data.name}`),
   updateMeasure: (data: UpdateMeasureRequest) => 
     api.put<Measure>('/measure/update', {
       Id: data.id,

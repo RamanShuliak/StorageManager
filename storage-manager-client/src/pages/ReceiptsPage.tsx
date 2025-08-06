@@ -5,8 +5,12 @@ import { ReceiptDocument, Resource, Measure } from '../types';
 import FilterPanel from '../components/FilterPanel';
 import DataTable from '../components/DataTable';
 import './Page.css';
+import { useNotification } from "../components/notifications/NotificationContext";
+import { AxiosError } from 'axios';
+import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const ReceiptsPage: React.FC = () => {
+  useFaviconAndTitle('Поступления', '/icons/logo-icon.png');
   const navigate = useNavigate();
   const [receipts, setReceipts] = useState<ReceiptDocument[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -20,6 +24,8 @@ const ReceiptsPage: React.FC = () => {
   const [dateTo, setDateTo] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const { addNotification } = useNotification();
+  
   useEffect(() => {
     console.log('ReceiptsPage useEffect triggered');
     loadFilters();
@@ -44,7 +50,7 @@ const ReceiptsPage: React.FC = () => {
       // Load initial receipts after filters are loaded
       await loadReceipts();
     } catch (error) {
-      console.error('Error loading filters:', error);
+      await handleServerExceptions(error);
     }
   };
 
@@ -71,7 +77,7 @@ const ReceiptsPage: React.FC = () => {
       console.log('Receipts data:', response.data);
       setReceipts(response.data || []);
     } catch (error) {
-      console.error('Error loading receipts:', error);
+      await handleServerExceptions(error);
       setReceipts([]);
     } finally {
       setLoading(false);
@@ -96,14 +102,6 @@ const ReceiptsPage: React.FC = () => {
 
   console.log('Final tableData:', tableData);
 
-  const columns = [
-    { key: 'number', header: 'Номер' },
-    { key: 'receiptDate', header: 'Дата' },
-    { key: 'resourceName', header: 'Ресурс' },
-    { key: 'measureName', header: 'Единица измерения' },
-    { key: 'amount', header: 'Количество' },
-  ];
-
   const handleRowClick = (item: any) => {
     navigate(`/receipts/${item.receiptId}`);
   };
@@ -111,6 +109,34 @@ const ReceiptsPage: React.FC = () => {
   const handleAddClick = () => {
     navigate('/receipts/new');
   };
+
+  const handleServerExceptions = async (err: unknown) => {
+    const error = err as AxiosError;
+    if (error.response?.status === 400){
+      addNotification(
+        "warning",
+        `Некорректный запрос к серверу. Обратитесь в техподдержку`
+      );
+    }
+    if (error.response?.status === 500){
+      const payload = error.response.data as {
+        message: string;
+      };
+      addNotification(
+        "error",
+        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
+      );
+      console.error(payload.message);
+    }
+  }
+
+  const columns = [
+    { key: 'number', header: 'Номер' },
+    { key: 'receiptDate', header: 'Дата' },
+    { key: 'resourceName', header: 'Ресурс' },
+    { key: 'measureName', header: 'Единица измерения' },
+    { key: 'amount', header: 'Количество' },
+  ];
 
   return (
     <div className="page">

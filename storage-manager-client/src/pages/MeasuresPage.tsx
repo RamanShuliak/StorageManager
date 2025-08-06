@@ -4,13 +4,19 @@ import { measureApi } from '../services/api';
 import { Measure } from '../types';
 import DataTable from '../components/DataTable';
 import './Page.css';
+import { useNotification } from "../components/notifications/NotificationContext";
+import { AxiosError } from 'axios';
+import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const MeasuresPage: React.FC = () => {
+  useFaviconAndTitle('Единицы измерения', '/icons/logo-icon.png');
   const navigate = useNavigate();
   const location = useLocation();
   const [measures, setMeasures] = useState<Measure[]>([]);
   const [loading, setLoading] = useState(false);
   const isArchived = location.pathname.includes('/archive');
+
+  const { addNotification } = useNotification();
 
   useEffect(() => {
     loadMeasures();
@@ -22,15 +28,11 @@ const MeasuresPage: React.FC = () => {
       const response = await measureApi.getMeasures(isArchived);
       setMeasures(response.data);
     } catch (error) {
-      console.error('Error loading measures:', error);
+      await handleServerExceptions(error);
     } finally {
       setLoading(false);
     }
   };
-
-  const columns = [
-    { key: 'name', header: 'Наименование' },
-  ];
 
   const handleRowClick = (measure: Measure) => {
     navigate(`/measures/${measure.id}`);
@@ -47,6 +49,30 @@ const MeasuresPage: React.FC = () => {
       navigate('/measures/archive');
     }
   };
+
+  const handleServerExceptions = async (err: unknown) => {
+    const error = err as AxiosError;
+    if (error.response?.status === 400){
+      addNotification(
+        "warning",
+        `Некорректный запрос к серверу. Обратитесь в техподдержку`
+      );
+    }
+    if (error.response?.status === 500){
+      const payload = error.response.data as {
+        message: string;
+      };
+      addNotification(
+        "error",
+        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
+      );
+      console.error(payload.message);
+    }
+  }
+
+  const columns = [
+    { key: 'name', header: 'Наименование' },
+  ];
 
   return (
     <div className="page">

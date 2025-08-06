@@ -71,6 +71,14 @@ public class ShipmentService(
         if (document == null)
             throw new EntityNotFoundException("ShipmentDocument", "Id", rqModel.Id.ToString());
 
+        if (!document.Number.Equals(rqModel.Number))
+        {
+            var isDocumentExistByNumber = await _uoW.ShipmentDocuments.IsDocumentExistByNumberAsync(rqModel.Number);
+
+            if (isDocumentExistByNumber)
+                throw new EntityAlreadyExistsException("ShipmentDocument", "Number", rqModel.Number);
+        }
+
         await IsClientExistByIdAsync(rqModel.ClientId);
 
         var resourceCount = await _uoW.ShipmentResources.GetResourceCountByDocumentIdAsync(rqModel.Id);
@@ -106,6 +114,14 @@ public class ShipmentService(
         {
             changeBalanceDtoList.AddRange(
                 await GetChangeBalanceDtoListFromExistResourceListAsync(document.Id));
+            await _balanceService.ChangeBalanceListAsync(changeBalanceDtoList);
+        }
+
+        if (!rqModel.IsSigned
+            && document.IsSigned)
+        {
+            changeBalanceDtoList 
+                = await GetChangeBalanceDtoListFromExistResourceListAsync(document.Id, true);
             await _balanceService.ChangeBalanceListAsync(changeBalanceDtoList);
         }
 
@@ -248,22 +264,41 @@ public class ShipmentService(
     }
 
     private async Task<List<ChangeBalanceDto>> GetChangeBalanceDtoListFromExistResourceListAsync(
-        Guid documentId)
+        Guid documentId,
+        bool? isDocumentUnsigning = false)
     {
         var resources = await _uoW.ShipmentResources.GetResourceListByDocumentIdAsync(documentId);
 
         var dtoList = new List<ChangeBalanceDto>();
 
-        foreach (var sr in resources)
+        if (isDocumentUnsigning != null
+            && isDocumentUnsigning == true)
         {
-            var dto = new ChangeBalanceDto()
+            foreach (var sr in resources)
             {
-                AmountChange = 0 - sr.Amount,
-                ResourceId = sr.ResourceId,
-                MeasureId = sr.MeasureId
-            };
+                var dto = new ChangeBalanceDto()
+                {
+                    AmountChange = sr.Amount,
+                    ResourceId = sr.ResourceId,
+                    MeasureId = sr.MeasureId
+                };
 
-            dtoList.Add(dto);
+                dtoList.Add(dto);
+            }
+        }
+        else
+        {
+            foreach (var sr in resources)
+            {
+                var dto = new ChangeBalanceDto()
+                {
+                    AmountChange = 0 - sr.Amount,
+                    ResourceId = sr.ResourceId,
+                    MeasureId = sr.MeasureId
+                };
+
+                dtoList.Add(dto);
+            }
         }
 
         return dtoList;

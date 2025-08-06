@@ -11,8 +11,13 @@ import {
   UpdateReceiptDocumentRequest
 } from '../types';
 import './Page.css';
+import { useNotification } from "../components/notifications/NotificationContext";
+import { AxiosError } from 'axios';
+import { DropdownSelect } from '../components/DropdownSelect';
+import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const ReceiptEditPage: React.FC = () => {
+  useFaviconAndTitle('Поступление', '/icons/logo-icon.png');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isNew = id === undefined;
@@ -31,6 +36,8 @@ const ReceiptEditPage: React.FC = () => {
   const updateResources: UpdateReceiptResourceRequest[] = [];
   const [loading, setLoading] = useState(false);
   const [dateInput, setDateInput] = useState<string>('');
+
+  const { addNotification } = useNotification();
 
   useEffect(() => {
     loadData();
@@ -57,11 +64,18 @@ const ReceiptEditPage: React.FC = () => {
         setDateInput(rawDate.toISOString().slice(0, 16));
       }
     } catch (error) {
-      console.error('Error loading data:', error);
+      await handleServerExceptions(error);
     }
   };
 
   const handleSave = async () => {
+    if(receipt.number === ''){
+      addNotification(
+        "info",
+        `Номер документа не может быть пустым`
+      );
+      return;
+    }
     setLoading(true);
     try {
       if (isNew) {
@@ -74,6 +88,10 @@ const ReceiptEditPage: React.FC = () => {
             amount: r.amount
           }))
         });
+        addNotification(
+          "success",
+          `Документ поступления "${receipt.number}" успешно создан`
+        );
       } else {
         const { createResources, updateResources } = buildUpdateArrays();
 
@@ -87,11 +105,15 @@ const ReceiptEditPage: React.FC = () => {
         };
 
         await receiptApi.updateReceipt(updateReq);
+        addNotification(
+          "success",
+          `Документ поступления "${receipt.number}" успешно изменён`
+        );
       }
 
       navigate('/receipts');
     } catch (error) {
-      console.error('Error saving receipt:', error);
+      await handleServerExceptions(error);
     } finally {
       setLoading(false);
     }
@@ -102,9 +124,13 @@ const ReceiptEditPage: React.FC = () => {
     if (window.confirm('Вы уверены, что хотите удалить это поступление?')) {
       try {
         await receiptApi.deleteReceipt(receipt.id);
+        addNotification(
+          "success",
+          `Документ поступления "${receipt.number}" успешно удалён`
+        );
         navigate('/receipts');
       } catch (error) {
-        console.error('Error deleting receipt:', error);
+        await handleServerExceptions(error);
       }
     }
   };
@@ -194,6 +220,96 @@ const ReceiptEditPage: React.FC = () => {
     });
   };
 
+  const handleServerExceptions = async (err: unknown) => {
+    const error = err as AxiosError;
+    if (error.response?.status === 409){
+      const payload = error.response.data as {
+        paramValue: string;
+        message: string;
+      };
+      addNotification(
+        "warning",
+        `Документ поступления с номером "${payload.paramValue}" уже существует`
+      );
+    }
+    if (error.response?.status === 404){
+      const payload = error.response.data as {
+        entityType: string;
+        paramName: string;
+        paramValue: string;
+        message: string;
+      };
+      if(payload.entityType === "ReceiptResource"){
+        addNotification(
+          "warning",
+          `Русурс поступления c "${payload.paramName}" = "${payload.paramValue}" не найден при попытке изменения документа`
+        );
+      }
+      if(payload.entityType === "ReceiptDocument"){
+        addNotification(
+          "warning",
+          `Документ поступления с номером "${receipt.number}" не найден`
+        );
+      }
+      if(payload.entityType === "Measure"){
+        var measureName = measures.find(m => m.id === payload.paramValue)?.name;
+        addNotification(
+          "warning",
+          `Единица измерения с именем "${measureName}" не найдена`
+        );
+      }
+      if(payload.entityType === "Resource"){
+        var resourceName = resources.find(r => r.id === payload.paramValue)?.name;
+        addNotification(
+          "warning",
+          `Ресурс с именем "${resourceName}" не найден`
+        );
+      }
+    }
+    if (error.response?.status === 410){
+      const payload = error.response.data as {
+        resourceId: string;
+        measureId: string;
+        message: string;
+      };
+      var measureName = measures.find(m => m.id === payload.measureId)?.name;
+      var resourceName = resources.find(r => r.id === payload.resourceId)?.name
+      addNotification(
+        "warning",
+        `Баланс ресурса "${resourceName}" - "${measureName}" не найден`
+      );
+    }
+    if (error.response?.status === 422){
+      const payload = error.response.data as {
+        resourceId: string;
+        measureId: string;
+        message: string;
+      };
+      var measureName = measures.find(m => m.id === payload.measureId)?.name;
+      var resourceName = resources.find(r => r.id === payload.resourceId)?.name
+      addNotification(
+        "warning",
+        `Ресурса "${resourceName}" - "${measureName}" недостаточно на складе`
+      );
+    }
+    if (error.response?.status === 400){
+      addNotification(
+        "warning",
+        `Некорректный запрос к серверу. Обратитесь в техподдержку`
+      );
+    }
+    if (error.response?.status === 500){
+      const payload = error.response.data as {
+        message: string;
+      };
+      addNotification(
+        "error",
+        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
+      );
+      console.error(payload.message);
+    }
+  }
+
   return (
     <div className="page">
       <div className="page-header">
@@ -262,27 +378,23 @@ const ReceiptEditPage: React.FC = () => {
                     </button>
                   </td>
                   <td>
-                    <select
+                    <DropdownSelect
+                      placeholder="Выберите ресурс"
+                      options={resources}
                       value={res.resourceId}
-                      onChange={e => updateResource(idx, 'resourceId', e.target.value)}
-                    >
-                      {resources.map(r => (
-                        <option key={r.id} value={r.id}>{r.name}</option>
-                      ))}
-                    </select>
+                      onChange={val => updateResource(idx, 'resourceId', val)}
+                    />
                   </td>
                   <td>
-                    <select
+                    <DropdownSelect
+                      placeholder="Выберите меру"
+                      options={measures}
                       value={res.measureId}
-                      onChange={e => updateResource(idx, 'measureId', e.target.value)}
-                    >
-                      {measures.map(m => (
-                        <option key={m.id} value={m.id}>{m.name}</option>
-                      ))}
-                    </select>
+                      onChange={val => updateResource(idx, 'measureId', val)}
+                    />
                   </td>
                   <td>
-                    <input
+                    <input className="unset-border"
                       type="number"
                       value={res.amount}
                       min="0"

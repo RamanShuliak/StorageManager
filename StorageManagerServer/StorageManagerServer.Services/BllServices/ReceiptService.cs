@@ -80,6 +80,14 @@ public class ReceiptService(
         if (document == null)
             throw new EntityNotFoundException("ReceiptDocument", "Id", rqModel.Id.ToString());
 
+        if (!document.Number.Equals(rqModel.Number))
+        {
+            var isDocumentExistByNumber = await _uoW.ReceiptDocuments.IsDocumentExistByNumberAsync(rqModel.Number);
+
+            if (isDocumentExistByNumber)
+                throw new EntityAlreadyExistsException("ReceiptDocument", "Number", rqModel.Number);
+        }
+
         var updatedDate = DateTime.UtcNow;
 
         var changeBalanceDtoList = new List<ChangeBalanceDto>();

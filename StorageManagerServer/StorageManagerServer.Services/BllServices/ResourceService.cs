@@ -95,6 +95,14 @@ public class ResourceService(
         if (resource == null)
             throw new EntityNotFoundException("Resource", "Id", rqModel.Id.ToString());
 
+        if (!resource.Name.Equals(rqModel.Name))
+        {
+            var isResourceExistByName = await _uoW.Resources.IsResourceExistByNameAsync(rqModel.Name);
+
+            if (isResourceExistByName)
+                throw new EntityAlreadyExistsException("Resource", "Name", rqModel.Name);
+        }
+
         resource.Name = rqModel.Name;
         resource.UpdatedDate = DateTime.UtcNow;
 

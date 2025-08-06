@@ -4,13 +4,19 @@ import { clientApi } from '../services/api';
 import { Client } from '../types';
 import DataTable from '../components/DataTable';
 import './Page.css';
+import { useNotification } from "../components/notifications/NotificationContext";
+import { AxiosError } from 'axios';
+import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const ClientsPage: React.FC = () => {
+  useFaviconAndTitle('Клиенты', '/icons/logo-icon.png');
   const navigate = useNavigate();
   const location = useLocation();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
   const isArchived = location.pathname.includes('/archive');
+
+  const { addNotification } = useNotification();
 
   useEffect(() => {
     loadClients();
@@ -22,16 +28,11 @@ const ClientsPage: React.FC = () => {
       const response = await clientApi.getClients(isArchived);
       setClients(response.data);
     } catch (error) {
-      console.error('Error loading clients:', error);
+      await handleServerExceptions(error);
     } finally {
       setLoading(false);
     }
   };
-
-  const columns = [
-    { key: 'name', header: 'Наименование' },
-    { key: 'address', header: 'Адрес' },
-  ];
 
   const handleRowClick = (client: Client) => {
     navigate(`/clients/${client.id}`);
@@ -49,18 +50,30 @@ const ClientsPage: React.FC = () => {
     }
   };
 
-  const handleArchiveToggle = async (client: Client) => {
-    try {
-      if (client.isArchived) {
-        await clientApi.unarchiveClient(client.id);
-      } else {
-        await clientApi.archiveClient(client.id);
-      }
-      loadClients();
-    } catch (error) {
-      console.error('Error toggling archive status:', error);
+  const handleServerExceptions = async (err: unknown) => {
+    const error = err as AxiosError;
+    if (error.response?.status === 400){
+      addNotification(
+        "warning",
+        `Некорректный запрос к серверу. Обратитесь в техподдержку`
+      );
     }
-  };
+    if (error.response?.status === 500){
+      const payload = error.response.data as {
+        message: string;
+      };
+      addNotification(
+        "error",
+        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
+      );
+      console.error(payload.message);
+    }
+  }
+
+  const columns = [
+    { key: 'name', header: 'Наименование' },
+    { key: 'address', header: 'Адрес' },
+  ];
 
   return (
     <div className="page">
