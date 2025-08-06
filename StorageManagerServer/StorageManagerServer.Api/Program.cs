@@ -54,13 +54,16 @@ using (var scope = app.Services.CreateScope())
     }
     await LogService.WriteInformationLogAsync("Migrations to database completed successful.\n");
     await LogService.WriteInformationLogAsync("StorageManagerServer is ready to work.");
-    await LogService.WriteInformationLogAsync("Go to URL https://localhost:7285/swagger/index.html to work with Swagger Api.\n");
+    await LogService.WriteInformationLogAsync("Go to URL http://localhost:5010/swagger/index.html to work with Swagger Api.\n");
 }
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+    });
 }
 
 app.UseHttpsRedirection();

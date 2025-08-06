@@ -39,8 +39,18 @@
   max-width: 700px;
 }
 
+.form-row {
+  max-width: 650px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+}
+
 .form-group {
   margin-bottom: 20px;
+  max-width: 300px;
+  min-width: 300px;
 }
 
 .form-group label {

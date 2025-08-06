@@ -371,60 +371,63 @@ const ShipmentEditPage: React.FC = () => {
             </button>
           )}
         </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Номер</label>
+            <input
+              type="text"
+              value={shipment.number}
+              onChange={(e) => setShipment(prev => ({ ...prev, number: e.target.value }))}
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Номер</label>
-          <input
-            type="text"
-            value={shipment.number}
-            onChange={(e) => setShipment(prev => ({ ...prev, number: e.target.value }))}
-          />
+          <div className="form-group">
+            <label>Дата и время</label>
+            <input
+              type="datetime-local"
+              value={dateInput}
+              onChange={e => {
+                const localStr = e.target.value;
+                setDateInput(localStr);
+                setShipment(prev => ({
+                  ...prev,
+                  shipmentDate: new Date(localStr)
+                }));
+              }}
+            />
+          </div>
         </div>
 
-        <div className="form-group">
-          <label>Дата и время</label>
-          <input
-            type="datetime-local"
-            value={dateInput}
-            onChange={e => {
-              const localStr = e.target.value;
-              setDateInput(localStr);
-              setShipment(prev => ({
-                ...prev,
-                shipmentDate: new Date(localStr)
-              }));
-            }}
-          />
-        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Клиент</label>
+            <select
+              value={shipment.clientId}
+              onChange={(e) => updateClient(e.target.value)}
+            >
+              <option value="">Выберите клиента</option>
+              {clients.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
 
-        <div className="form-group">
-          <label>Клиент</label>
-          <select
-            value={shipment.clientId}
-            onChange={(e) => updateClient(e.target.value)}
-          >
-            <option value="">Выберите клиента</option>
-            {clients.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+          {isNew
+            ? null
+            : (
+              <div className="form-group">
+                <label>Статус</label>
+                <select
+                  value={shipment.isSigned ? 'true' : 'false'}
+                  onChange={(e) => setShipment(prev => ({ ...prev, isSigned: e.target.value === 'true' }))}
+                >
+                  <option value="false">не подписан</option>
+                  <option value="true">подписан</option>
+                </select>
+              </div>
+            )
+          }
         </div>
-
-        {isNew
-          ? null
-          : (
-            <div className="form-group">
-              <label>Статус</label>
-              <select
-                value={shipment.isSigned ? 'true' : 'false'}
-                onChange={(e) => setShipment(prev => ({ ...prev, isSigned: e.target.value === 'true' }))}
-              >
-                <option value="false">не подписан</option>
-                <option value="true">подписан</option>
-              </select>
-            </div>
-          )
-        }
 
         <div className="resource-table">
           <h3>Ресурсы</h3>

@@ -85,20 +85,34 @@ const ReceiptsPage: React.FC = () => {
   };
 
   // Flatten receipts data for table display with safety checks
-  const tableData = receipts?.flatMap(receipt => {
-    console.log('Processing receipt:', receipt);
-    console.log('Receipt resources:', receipt.resources);
-    
-    return receipt.resources?.map(resource => ({
+  const tableData = receipts.flatMap(receipt => {
+    const common = {
       number: receipt.number,
-      receiptDate: new Date(receipt.receiptDate).toLocaleDateString('en-GB', { timeZone: 'UTC' }),
-      resourceName: resource.resourceName,
-      measureName: resource.measureName,
-      amount: resource.amount,
-      receiptId: receipt.id,
-      resourceId: resource.id,
-    })) || [];
-  }) || [];
+      receiptDate: new Date(receipt.receiptDate)
+        .toLocaleDateString('en-GB', { timeZone: 'UTC' }),
+      receiptId: receipt.id
+    };
+  
+    // Есть ресурсы — создаём по одному ряду на ресурс
+    if (receipt.resources && receipt.resources.length > 0) {
+      return receipt.resources.map(resource => ({
+        ...common,
+        resourceName: resource.resourceName,
+        measureName: resource.measureName,
+        amount: resource.amount,
+        resourceId: resource.id
+      }));
+    }
+  
+    // Нет ресурсов — одна строка-заглушка
+    return [{
+      ...common,
+      resourceName: '-',
+      measureName: '-',
+      amount: 0,
+      resourceId: ''
+    }];
+  });
 
   console.log('Final tableData:', tableData);
 

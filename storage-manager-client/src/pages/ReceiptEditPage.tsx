@@ -328,29 +328,31 @@ const ReceiptEditPage: React.FC = () => {
           )}
         </div>
 
-        <div className="form-group">
-          <label>Номер</label>
-          <input
-            type="text"
-            value={receipt.number}
-            onChange={e => setReceipt(prev => ({ ...prev, number: e.target.value }))}
-          />
-        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Номер</label>
+            <input
+              type="text"
+              value={receipt.number}
+              onChange={e => setReceipt(prev => ({ ...prev, number: e.target.value }))}
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Дата и время</label>
-          <input
-            type="datetime-local"
-            value={dateInput}
-            onChange={e => {
-              const localStr = e.target.value;
-              setDateInput(localStr);
-              setReceipt(prev => ({
-                ...prev,
-                receiptDate: new Date(localStr)
-              }));
-            }}
-          />
+          <div className="form-group">
+            <label>Дата и время</label>
+            <input
+              type="datetime-local"
+              value={dateInput}
+              onChange={e => {
+                const localStr = e.target.value;
+                setDateInput(localStr);
+                setReceipt(prev => ({
+                  ...prev,
+                  receiptDate: new Date(localStr)
+                }));
+              }}
+            />
+          </div>
         </div>
 
         <div className="resource-table">

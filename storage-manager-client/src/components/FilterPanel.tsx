@@ -65,23 +65,9 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   // Build the button label: placeholder or comma-joined names
   const buildLabel = (
     placeholder: string,
-    options: FilterOption[] | string[],
-    selected: string[],
-    isStringArray = false
-  ) => {
-    if (!selected.length) return placeholder;
-
-    if (isStringArray) {
-      return (options as string[])
-        .filter(val => selected.includes(val))
-        .join(', ');
-    }
-
-    return (options as FilterOption[])
-      .filter(o => selected.includes(o.id))
-      .map(o => o.name)
-      .join(', ');
-  };
+    _options: FilterOption[] | string[],
+    selected: string[]
+  ) => (selected.length ? `Выбрано ${selected.length}` : placeholder);
 
   // Handle individual checkbox toggle
   const handleCheck =
@@ -220,7 +206,10 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             )}
           </div>
         )}
+      </div>
 
+      {showNumberFilter && numbers && showDateFilters && (
+      <div className="filter-row">
         {showNumberFilter && numbers && (
           <div className="filter-group dropdown">
             <label>Номер документа</label>
@@ -232,8 +221,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               {buildLabel(
                 'Выберите номер документа',
                 numbers,
-                selectedNumbers,
-                true
+                selectedNumbers
               )}
             </button>
             {openFilter === 'numbers' && (
@@ -258,12 +246,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             )}
           </div>
         )}
-      </div>
-
-      {showDateFilters && (
-        <div className="filter-row">
+        {showDateFilters && (
           <div className="date-filters">
-            <h4>Период</h4>
             <div className="date-inputs">
               <div className="filter-group">
                 <label>От</label>
@@ -282,9 +266,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
                 />
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>)}
+        </div>)}
 
       <div className="filter-actions">
         <button className="btn btn-primary" onClick={onSearch}>

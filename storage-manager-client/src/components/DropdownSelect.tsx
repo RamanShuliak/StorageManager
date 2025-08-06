@@ -41,18 +41,18 @@ export const DropdownSelect: React.FC<DropdownSelectProps> = ({
     <div className="dropdown-select" ref={rootRef}>
       <button
         type="button"
-        className="dropdown-toggle"
+        className="dropdown-toggle-ds"
         onClick={() => setIsOpen(open => !open)}
       >
         {label}
         <span className="dropdown-arrow" />
       </button>
       {isOpen && (
-        <ul className="dropdown-menu">
+        <ul className="dropdown-menu-ds">
           {options.map(opt => (
             <li
               key={opt.id}
-              className={`dropdown-item${opt.id === value ? ' active' : ''}`}
+              className={`dropdown-item-ds${opt.id === value ? ' active' : ''}`}
               onClick={() => {
                 onChange(opt.id);
                 setIsOpen(false);

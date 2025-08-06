@@ -184,22 +184,24 @@ const ClientEditPage: React.FC = () => {
           )}
         </div>
 
-        <div className="form-group">
-          <label>Наименование</label>
-          <input
-            type="text"
-            value={client.name}
-            onChange={(e) => setClient(prev => ({ ...prev, name: e.target.value }))}
-          />
-        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Наименование</label>
+            <input
+              type="text"
+              value={client.name}
+              onChange={(e) => setClient(prev => ({ ...prev, name: e.target.value }))}
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Адрес</label>
-          <input
-            type="text"
-            value={client.address}
-            onChange={(e) => setClient(prev => ({ ...prev, address: e.target.value }))}
-          />
+          <div className="form-group">
+            <label>Адрес</label>
+            <input
+              type="text"
+              value={client.address}
+              onChange={(e) => setClient(prev => ({ ...prev, address: e.target.value }))}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -1,10 +1,10 @@
 .dropdown-select {
     position: relative;
     display: inline-block;
-    width: 100%;
+    width: 180px;
   }
   
-  .dropdown-toggle {
+  .dropdown-toggle-ds {
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -17,7 +17,7 @@
     font: inherit;
   }
   
-  .dropdown-toggle:focus {
+  .dropdown-toggle-ds:focus {
     outline: none;
     box-shadow: none;
   }
@@ -26,7 +26,7 @@
     display: none;
   }
   
-  .dropdown-menu {
+  .dropdown-menu-ds {
     position: absolute;
     top: calc(100% + 4px);
     left: 0;
@@ -42,18 +42,18 @@
     z-index: 1000;
   }
   
-  .dropdown-item {
+  .dropdown-item-ds {
     padding: 8px 12px;
     cursor: pointer;
     user-select: none;
   }
   
-  .dropdown-item:hover,
-  .dropdown-item.active {
+  .dropdown-item-ds:hover,
+  .dropdown-item-ds.active {
     background-color: #f5f5f5;
   }
   
-  .dropdown-item.active {
+  .dropdown-item-ds.active {
     font-weight: 500;
   }
   
