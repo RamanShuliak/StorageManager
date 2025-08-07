@@ -22,12 +22,12 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Trust Server Certificate=true"
-      LogService__LogRetentionDays: "7"
-      LogService__LogLevel: "Information"
+      LogService__LogRetentionDays: ${SERVER_LOG_RETENTION_DAYS}
+      LogService__LogLevel: ${SERVER_LOG_LEVEL}
     ports:
       - "${API_PORT}:${API_PORT}"
     healthcheck:
-      test: ["CMD", "curl", "-f", "${API_ADDRESS}/health"] 
+      test: ["CMD", "curl", "-f", "${ADDRESS}/health"] 
       interval: 30s
       timeout: 5s
       retries: 3

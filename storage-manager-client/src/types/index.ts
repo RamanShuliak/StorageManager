@@ -140,7 +140,6 @@ export interface UpdateShipmentResourceRequest {
   amount: number;
 }
 
-
 export interface ReceiptFilters {
   numbers?: string[];
   resourceIds?: string[];

@@ -47,7 +47,6 @@ const ReceiptsPage: React.FC = () => {
       setMeasures(measuresResponse.data);
       setNumbers(numbersResponse.data);
       
-      // Load initial receipts after filters are loaded
       await loadReceipts();
     } catch (error) {
       await handleServerExceptions(error);
@@ -84,7 +83,6 @@ const ReceiptsPage: React.FC = () => {
     }
   };
 
-  // Flatten receipts data for table display with safety checks
   const tableData = receipts.flatMap(receipt => {
     const common = {
       number: receipt.number,
@@ -93,7 +91,6 @@ const ReceiptsPage: React.FC = () => {
       receiptId: receipt.id
     };
   
-    // Есть ресурсы — создаём по одному ряду на ресурс
     if (receipt.resources && receipt.resources.length > 0) {
       return receipt.resources.map(resource => ({
         ...common,
@@ -104,7 +101,6 @@ const ReceiptsPage: React.FC = () => {
       }));
     }
   
-    // Нет ресурсов — одна строка-заглушка
     return [{
       ...common,
       resourceName: '-',

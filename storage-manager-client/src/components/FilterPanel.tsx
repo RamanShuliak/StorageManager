@@ -55,21 +55,18 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     'resources' | 'measures' | 'clients' | 'numbers' | null
   >(null);
 
-  // Toggle dropdown visibility
   const toggleDropdown = (
     name: 'resources' | 'measures' | 'clients' | 'numbers'
   ) => {
     setOpenFilter(prev => (prev === name ? null : name));
   };
 
-  // Build the button label: placeholder or comma-joined names
   const buildLabel = (
     placeholder: string,
     _options: FilterOption[] | string[],
     selected: string[]
   ) => (selected.length ? `Выбрано ${selected.length}` : placeholder);
 
-  // Handle individual checkbox toggle
   const handleCheck =
     (
       id: string,
@@ -83,10 +80,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       onChange(next);
     };
 
-  // Format ISO date to YYYY-MM-DD for the native date input
   const asDateInput = (iso: string) => (iso ? iso.substring(0, 10) : '');
 
-  // Handle date changes, pushing start / end of day into UTC
   const handleDateChange =
     (
       setter: (isoDate: string) => void,

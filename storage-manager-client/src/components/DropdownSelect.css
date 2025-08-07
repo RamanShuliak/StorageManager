@@ -3,6 +3,10 @@
     display: inline-block;
     width: 180px;
   }
+
+  .ds-wide {
+    width: 300px !important;
+  }
   
   .dropdown-toggle-ds {
     width: 100%;

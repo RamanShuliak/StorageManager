@@ -11,6 +11,7 @@ interface DropdownSelectProps {
   value: string;
   onChange: (val: string) => void;
   placeholder: string;
+  className?: string;
 }
 
 export const DropdownSelect: React.FC<DropdownSelectProps> = ({
@@ -18,11 +19,12 @@ export const DropdownSelect: React.FC<DropdownSelectProps> = ({
   value,
   onChange,
   placeholder,
+  className = ''
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+  const rootClasses = `dropdown-select ${className}`.trim();
 
-  // Закрываем меню при клике вне компонента
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
@@ -33,12 +35,11 @@ export const DropdownSelect: React.FC<DropdownSelectProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Строим текст для кнопки
   const selectedOption = options.find(o => o.id === value);
   const label = selectedOption ? selectedOption.name : placeholder;
 
   return (
-    <div className="dropdown-select" ref={rootRef}>
+    <div className={rootClasses} ref={rootRef}>
       <button
         type="button"
         className="dropdown-toggle-ds"

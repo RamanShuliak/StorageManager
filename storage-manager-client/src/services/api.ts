@@ -19,8 +19,7 @@ import {
   ShipmentFilters
 } from '../types';
 
-//const API_BASE_URL = process.env.REACT_APP_API_BASE_URL
-const API_BASE_URL = "http://localhost:5010/api"
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL ?? "http://localhost:5010/api";
 console.log(API_BASE_URL);
 
 const api = axios.create({
@@ -30,7 +29,6 @@ const api = axios.create({
   },
 });
 
-// Balance API
 export const balanceApi = {
   getBalances: (filters?: BalanceFilters) =>
     api.get<Balance[]>('/balance/get-list', {
@@ -43,7 +41,6 @@ export const balanceApi = {
     }),
 };
 
-// Receipt API
 export const receiptApi = {
   getReceipts: (filters?: ReceiptFilters) =>
     api.get<ReceiptDocument[]>('/receipt/get-list', {
@@ -93,7 +90,6 @@ export const receiptApi = {
     api.delete(`/receipt/delete?documentId=${id}`),
 };
 
-// Shipment API
 export const shipmentApi = {
   getShipments: (filters?: ShipmentFilters) =>
     api.get<ShipmentDocument[]>('/shipment/get-list', {
@@ -147,7 +143,6 @@ export const shipmentApi = {
     api.delete(`/shipment/delete?documentId=${id}`),
 };
 
-// Client API
 export const clientApi = {
   getClients: (isArchived: boolean = false) => 
     isArchived 
@@ -174,7 +169,6 @@ export const clientApi = {
     api.put<Client>(`/client/update-state?id=${id}`),
 };
 
-// Resource API
 export const resourceApi = {
   getResources: (isArchived: boolean = false) => 
     isArchived 
@@ -197,7 +191,6 @@ export const resourceApi = {
     api.put<Resource>(`/resource/update-state?id=${id}`),
 };
 
-// Measure API
 export const measureApi = {
   getMeasures: (isArchived: boolean = false) => 
     isArchived 
