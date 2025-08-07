@@ -185,7 +185,7 @@ const ShipmentEditPage: React.FC = () => {
   const addResource = () => {
     const tempId = `temp-${Date.now()}`;
     const newResource: ShipmentResource = {
-      id: tempId, // Temporary ID
+      id: tempId,
       resourceId: resources[0]?.id || '',
       resourceName: resources[0]?.name || '',
       measureId: measures[0]?.id || '',
@@ -399,34 +399,40 @@ const ShipmentEditPage: React.FC = () => {
         </div>
 
         <div className="form-row">
-          <div className="form-group">
-            <label>Клиент</label>
-            <select
-              value={shipment.clientId}
-              onChange={(e) => updateClient(e.target.value)}
-            >
-              <option value="">Выберите клиента</option>
-              {clients.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
+        <div className="form-group">
+          <label>Клиент</label>
+          <DropdownSelect
+            placeholder="Выберите клиента"
+            options={clients}
+            value={shipment.clientId}
+            onChange={val => updateClient(val)}
+            className="ds-wide"
+          />
+        </div>
 
-          {isNew
-            ? null
-            : (
-              <div className="form-group">
-                <label>Статус</label>
-                <select
-                  value={shipment.isSigned ? 'true' : 'false'}
-                  onChange={(e) => setShipment(prev => ({ ...prev, isSigned: e.target.value === 'true' }))}
-                >
-                  <option value="false">не подписан</option>
-                  <option value="true">подписан</option>
-                </select>
-              </div>
-            )
-          }
+        {!isNew && (
+          <div className="form-group">
+            <label>Статус</label>
+            <DropdownSelect
+              placeholder="Выберите статус"
+              
+              options={[
+                { id: 'false', name: 'не подписан' },
+                { id: 'true',  name: 'подписан'  }
+              ]}
+              
+              value={String(shipment.isSigned)}
+              
+              onChange={val =>
+                setShipment(prev => ({
+                  ...prev,
+                  isSigned: val === 'true'
+                }))
+              }
+              className="ds-wide"
+            />
+          </div>
+        )}
         </div>
 
         <div className="resource-table">

@@ -21,7 +21,6 @@
     cursor: pointer;
   }
   
-  /* Типы уведомлений */
   .global-notification-error {
     background-color: #feaaaa;
     border-color: #c74242;

@@ -90,7 +90,6 @@ const ShipmentsPage: React.FC = () => {
     }
   };
 
-  // Flatten shipments data for table display with safety checks
   const tableData = shipments?.flatMap(shipment => {
     console.log('Processing shipment:', shipment);
     console.log('Shipment resources:', shipment.resources);

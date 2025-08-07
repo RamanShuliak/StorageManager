@@ -1,6 +1,3 @@
-########################################
-# 1. Сборка React-приложения
-########################################
 FROM node:18 AS build
 
 WORKDIR /app
@@ -14,20 +11,14 @@ RUN npm install
 COPY . ./
 RUN npm run build
 
-########################################
-# 2. Отдача статики без Nginx
-########################################
 FROM node:18-alpine AS runtime
 
 WORKDIR /app
 
-# Берём готовый билд
 COPY --from=build /app/build .
 
-# Устанавливаем утилиту serve
 RUN npm install -g serve
 
 EXPOSE 80
 
-# Однострочный SPA-сервер
 CMD ["serve", "-s", ".", "-l", "80"]

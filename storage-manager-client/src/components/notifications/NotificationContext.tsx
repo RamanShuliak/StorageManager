@@ -8,32 +8,27 @@ import React, {
   import { v4 as uuidv4 } from "uuid";
 import NotificationContainer from "./NotificationContainer";
   
-  // Типы уведомлений
   export type NotificationType = "error" | "success" | "warning" | "info";
   
-  // Интерфейс уведомления
   export interface Notification {
     id: string;
     type: NotificationType;
     message: string;
   }
   
-  // API контекста
   interface NotificationContextProps {
     addNotification: (type: NotificationType, message: string) => void;
   }
   
-  // Создаём контекст
   const NotificationContext = createContext<
     NotificationContextProps | undefined
   >(undefined);
   
-  // Хук для удобного доступа к API
   export const useNotification = (): NotificationContextProps => {
     const ctx = useContext(NotificationContext);
     if (!ctx) {
       throw new Error(
-        "useNotification должен использоваться внутри NotificationProvider"
+        "useNotification should be used inside the NotificationProvider"
       );
     }
     return ctx;
@@ -49,17 +44,14 @@ import NotificationContainer from "./NotificationContainer";
   export const NotificationProvider: React.FC<ProviderProps> = ({
     children,
   }) => {
-    // Активные уведомления на экране
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    // Очередь ожидающих уведомлений
+ 
     const queueRef = useRef<Notification[]>([]);
   
-    // Удаление уведомления по id
     const removeNotification = (id: string) => {
       setNotifications((current) => {
         const updated = current.filter((n) => n.id !== id);
   
-        // Если в очереди что-то есть – показываем следующее
         if (queueRef.current.length > 0) {
           const next = queueRef.current.shift()!;
           scheduleRemoval(next);
@@ -70,12 +62,10 @@ import NotificationContainer from "./NotificationContainer";
       });
     };
   
-    // Запланировать автоматическое удаление
     const scheduleRemoval = (notification: Notification) => {
       setTimeout(() => removeNotification(notification.id), DISPLAY_TIME);
     };
   
-    // Публичная функция добавления уведомления
     const addNotification = (type: NotificationType, message: string) => {
       const newNote: Notification = {
         id: uuidv4(),

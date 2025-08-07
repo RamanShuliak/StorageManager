@@ -45,7 +45,7 @@ const ReceiptEditPage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      setDeletedResourceIds([]);  // сбрасываем удалённые при загрузке
+      setDeletedResourceIds([]);
       const [resResp, measResp] = await Promise.all([
         resourceApi.getResources(false),
         measureApi.getMeasures(false)
