@@ -1,0 +1,57 @@
+{
+    "title": "Отгрузка",
+    "buttons": {
+      "save": "Сохранить",
+      "delete": "Удалить"
+    },
+    "labels": {
+      "number": "Номер",
+      "dateTime": "Дата и время",
+      "client": "Клиент",
+      "status": "Статус"
+    },
+    "placeholders": {
+      "selectClient": "Выберите клиента",
+      "selectStatus": "Выберите статус",
+      "selectResource": "Выберите ресурс",
+      "selectMeasure": "Выберите меру"
+    },
+    "status": {
+      "signed": "подписан",
+      "unsigned": "не подписан"
+    },
+    "section": {
+      "resources": "Ресурсы"
+    },
+    "table": {
+      "resource": "Ресурс",
+      "measure": "Единица измерения",
+      "amount": "Количество"
+    },
+    "confirm": {
+      "delete": "Вы уверены, что хотите удалить эту отгрузку?"
+    },
+    "notifications": {
+      "emptyNumber": "Номер документа не может быть пустым",
+      "emptyClient": "Укажите клиента для документа отгрузки",
+      "createSuccess": "Документ отгрузки \"{{number}}\" успешно создан",
+      "updateSuccess": "Документ отгрузки \"{{number}}\" успешно изменён",
+      "deleteSuccess": "Документ отгрузки \"{{number}}\" успешно удалён"
+    },
+    "errors": {
+      "conflictNumber": "Документ отгрузки с номером \"{{paramValue}}\" уже существует",
+      "notFound": {
+        "shipmentResource": "Ресурс отгрузки c \"{{paramName}}\" = \"{{paramValue}}\" не найден при попытке изменения документа",
+        "shipmentDocument": "Документ отгрузки с номером \"{{number}}\" не найден",
+        "measureByName": "Единица измерения с именем \"{{measureName}}\" не найдена",
+        "resourceByName": "Ресурс с именем \"{{resourceName}}\" не найден",
+        "clientByName": "Клиент с именем \"{{clientName}}\" не найден"
+      },
+      "balanceNotFound": "Баланс ресурса \"{{resourceName}}\" - \"{{measureName}}\" не найден",
+      "insufficient": "Ресурса \"{{resourceName}}\" - \"{{measureName}}\" недостаточно на складе",
+      "noResources": "Документ \"{{documentNumber}}\" нельзя создать без ресурсов отгрузки",
+      "badRequest": "Некорректный запрос к серверу. Обратитесь в техподдержку",
+      "serverError": "Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку"
+    }
+  }
+  

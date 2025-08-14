@@ -1,0 +1,21 @@
+{
+    "labels": {
+      "resource": "Resource",
+      "measure": "Unit of Measure",
+      "client": "Client",
+      "number": "Document number",
+      "from": "From",
+      "to": "To"
+    },
+    "placeholders": {
+      "resource": "Select a resource",
+      "measure": "Select a unit of measure",
+      "client": "Select a client",
+      "number": "Select a document number"
+    },
+    "common": {
+      "selectedCount": "Selected {{count}}",
+      "search": "Search"
+    }
+  }
+  

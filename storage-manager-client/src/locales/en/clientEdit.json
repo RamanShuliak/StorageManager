@@ -1,0 +1,30 @@
+{
+    "title": "Client",
+    "form": {
+      "name": "Name",
+      "address": "Address"
+    },
+    "buttons": {
+      "save": "Save",
+      "toWork": "To work",
+      "toArchive": "To archive",
+      "delete": "Delete"
+    },
+    "messages": {
+      "emptyName": "Client name cannot be empty",
+      "created": "Client \"{{name}}\" created successfully",
+      "updated": "Client \"{{name}}\" updated successfully",
+      "deleted": "Client \"{{name}}\" deleted successfully",
+      "archived": "Client \"{{name}}\" archived successfully",
+      "unarchived": "Client \"{{name}}\" unarchived successfully"
+    },
+    "confirmDelete": "Are you sure you want to delete this client?",
+    "errors": {
+      "exists": "Client \"{{name}}\" already exists",
+      "notFound": "Client \"{{name}}\" not found",
+      "locked": "Cannot delete a client that is in use",
+      "badRequest": "Bad request to the server. Please contact support",
+      "serverError": "A server error occurred. Please try again later or contact support"
+    }
+  }
+  

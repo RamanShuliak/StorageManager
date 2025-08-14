@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { measureApi } from '../services/api';
 import { Measure } from '../types';
 import './Page.css';
@@ -8,11 +9,13 @@ import { AxiosError } from 'axios';
 import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const MeasureEditPage: React.FC = () => {
-  useFaviconAndTitle('Единица измерения', '/icons/logo-icon.png');
+  const { t } = useTranslation('measureEdit');
+
+  useFaviconAndTitle(t('title'), '/icons/logo-icon.png');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isNew = id === undefined;
-  
+
   const [measure, setMeasure] = useState<Measure>({
     id: '',
     name: '',
@@ -38,32 +41,18 @@ const MeasureEditPage: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if(measure.name === ''){
-      addNotification(
-        "info",
-        `Имя единицы измерения не может быть пустым`
-      );
+    if (measure.name.trim() === '') {
+      addNotification("info", t('messages.emptyName'));
       return;
     }
     setLoading(true);
     try {
       if (isNew) {
-        await measureApi.createMeasure({
-          name: measure.name
-        });
-        addNotification(
-          "success",
-          `Единица измерения с именем "${measure.name}" успешно создана`
-        );
+        await measureApi.createMeasure({ name: measure.name });
+        addNotification("success", t('messages.created', { name: measure.name }));
       } else {
-        await measureApi.updateMeasure({
-          id: measure.id,
-          name: measure.name
-        });
-        addNotification(
-          "success",
-          `Единица измерения с именем "${measure.name}" успешно изменена`
-        );
+        await measureApi.updateMeasure({ id: measure.id, name: measure.name });
+        addNotification("success", t('messages.updated', { name: measure.name }));
       }
       navigate('/measures');
     } catch (error) {
@@ -75,14 +64,10 @@ const MeasureEditPage: React.FC = () => {
 
   const handleDelete = async () => {
     if (isNew) return;
-    
-    if (window.confirm('Вы уверены, что хотите удалить эту единицу измерения?')) {
+    if (window.confirm(t('messages.confirmDelete') as string)) {
       try {
         await measureApi.deleteMeasure(measure.id);
-        addNotification(
-          "success",
-          `Единица измерения с именем "${measure.name}" успешно удалена`
-        );
+        addNotification("success", t('messages.deleted', { name: measure.name }));
         navigate('/measures');
       } catch (error) {
         await handleServerExceptions(error);
@@ -94,16 +79,10 @@ const MeasureEditPage: React.FC = () => {
     try {
       if (measure.isArchived) {
         await measureApi.unarchiveMeasure(measure.id);
-        addNotification(
-          "info",
-          `Единица измерения с именем "${measure.name}" разархивирована`
-        );
+        addNotification("info", t('messages.unarchived', { name: measure.name }));
       } else {
         await measureApi.archiveMeasure(measure.id);
-        addNotification(
-          "info",
-          `Единица измерения с именем "${measure.name}" архивирована`
-        );
+        addNotification("info", t('messages.archived', { name: measure.name }));
       }
       setMeasure(prev => ({ ...prev, isArchived: !prev.isArchived }));
       navigate('/measures');
@@ -114,75 +93,51 @@ const MeasureEditPage: React.FC = () => {
 
   const handleServerExceptions = async (err: unknown) => {
     const error = err as AxiosError;
-    if (error.response?.status === 409){
-      const payload = error.response.data as {
-        paramValue: string;
-        message: string;
-      };
-      addNotification(
-        "warning",
-        `Единица измерения с именем "${payload.paramValue}" уже существует`
-      );
+    if (error.response?.status === 409) {
+      const payload = error.response.data as { paramValue: string };
+      addNotification("warning", t('messages.exists', { name: payload.paramValue }));
     }
-    if (error.response?.status === 404){
-      const payload = error.response.data as {
-        message: string;
-      };
-      addNotification(
-        "warning",
-        `Единица измерения с именем "${measure.name}" не найдена`
-      );
-      console.warn(payload.message);
+    if (error.response?.status === 404) {
+      addNotification("warning", t('messages.notFound', { name: measure.name }));
     }
-    if (error.response?.status === 423){
-      addNotification(
-        "warning",
-        `Невозможно удалить используемую единицу измерения из системы`
-      );
+    if (error.response?.status === 423) {
+      addNotification("warning", t('messages.inUse'));
     }
-    if (error.response?.status === 400){
-      addNotification(
-        "warning",
-        `Некорректный запрос к серверу. Обратитесь в техподдержку`
-      );
+    if (error.response?.status === 400) {
+      addNotification("warning", t('messages.badRequest'));
     }
-    if (error.response?.status === 500){
-      const payload = error.response.data as {
-        message: string;
-      };
-      addNotification(
-        "error",
-        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
-      );
+    if (error.response?.status === 500) {
+      const payload = error.response.data as { message: string };
+      addNotification("error", t('messages.serverError'));
       console.error(payload.message);
     }
-  }
+  };
 
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Единица измерения</h1>
+        <h1>{t('title')}</h1>
       </div>
 
       <div className="form-container">
         <div className="form-actions">
           <button className="btn btn-success" onClick={handleSave} disabled={loading}>
-            Сохранить
+            {t('buttons.save')}
           </button>
           {!isNew && (
             <>
               <button className="btn btn-warning" onClick={handleArchiveToggle} disabled={loading}>
-                {measure.isArchived ? 'В работу' : 'В архив'}
+                {measure.isArchived ? t('buttons.unarchive') : t('buttons.archive')}
               </button>
               <button className="btn btn-danger" onClick={handleDelete} disabled={loading}>
-                Удалить
+                {t('buttons.delete')}
               </button>
             </>
           )}
         </div>
 
         <div className="form-group">
-          <label>Наименование</label>
+          <label>{t('labels.name')}</label>
           <input
             type="text"
             value={measure.name}
@@ -194,4 +149,4 @@ const MeasureEditPage: React.FC = () => {
   );
 };
 
-export default MeasureEditPage; 
+export default MeasureEditPage;

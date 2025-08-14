@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { resourceApi } from '../services/api';
 import { Resource } from '../types';
 import './Page.css';
@@ -8,7 +9,9 @@ import { AxiosError } from 'axios';
 import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const ResourceEditPage: React.FC = () => {
-  useFaviconAndTitle('Ресурс', '/icons/logo-icon.png');
+  const { t } = useTranslation('resourceEdit');
+
+  useFaviconAndTitle(t('title'), '/icons/logo-icon.png');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isNew = id === undefined;
@@ -38,32 +41,18 @@ const ResourceEditPage: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if(resource.name === ''){
-      addNotification(
-        "info",
-        `Имя ресурса не может быть пустым`
-      );
+    if (resource.name.trim() === '') {
+      addNotification("info", t('messages.emptyName'));
       return;
     }
     setLoading(true);
     try {
       if (isNew) {
-        await resourceApi.createResource({
-          name: resource.name
-        });
-        addNotification(
-          "success",
-          `Ресурс с именем "${resource.name}" успешно создан`
-        );
+        await resourceApi.createResource({ name: resource.name });
+        addNotification("success", t('messages.created', { name: resource.name }));
       } else {
-        await resourceApi.updateResource({
-          id: resource.id,
-          name: resource.name
-        });
-        addNotification(
-          "success",
-          `Ресурс с именем "${resource.name}" успешно изменён`
-        );
+        await resourceApi.updateResource({ id: resource.id, name: resource.name });
+        addNotification("success", t('messages.updated', { name: resource.name }));
       }
       navigate('/resources');
     } catch (error) {
@@ -75,14 +64,10 @@ const ResourceEditPage: React.FC = () => {
 
   const handleDelete = async () => {
     if (isNew) return;
-    
-    if (window.confirm('Вы уверены, что хотите удалить этот ресурс?')) {
+    if (window.confirm(t('messages.confirmDelete') as string)) {
       try {
         await resourceApi.deleteResource(resource.id);
-        addNotification(
-          "success",
-          `Ресурс с именем "${resource.name}" успешно удалён`
-        );
+        addNotification("success", t('messages.deleted', { name: resource.name }));
         navigate('/resources');
       } catch (error) {
         await handleServerExceptions(error);
@@ -94,16 +79,10 @@ const ResourceEditPage: React.FC = () => {
     try {
       if (resource.isArchived) {
         await resourceApi.unarchiveResource(resource.id);
-                addNotification(
-          "info",
-          `Ресурс с именем "${resource.name}" разархивирован`
-        );
+        addNotification("info", t('messages.unarchived', { name: resource.name }));
       } else {
         await resourceApi.archiveResource(resource.id);
-        addNotification(
-          "info",
-          `Ресурс с именем "${resource.name}" архивирован`
-        );
+        addNotification("info", t('messages.archived', { name: resource.name }));
       }
       setResource(prev => ({ ...prev, isArchived: !prev.isArchived }));
       navigate('/resources');
@@ -114,75 +93,51 @@ const ResourceEditPage: React.FC = () => {
 
   const handleServerExceptions = async (err: unknown) => {
     const error = err as AxiosError;
-    if (error.response?.status === 409){
-      const payload = error.response.data as {
-        paramValue: string;
-        message: string;
-      };
-      addNotification(
-        "warning",
-        `Ресурс с именем "${payload.paramValue}" уже существует`
-      );
+    if (error.response?.status === 409) {
+      const payload = error.response.data as { paramValue: string };
+      addNotification("warning", t('messages.exists', { name: payload.paramValue }));
     }
-    if (error.response?.status === 404){
-      const payload = error.response.data as {
-        message: string;
-      };
-      addNotification(
-        "warning",
-        `Ресурс с именем "${resource.name}" не найден`
-      );
-      console.warn(payload.message);
+    if (error.response?.status === 404) {
+      addNotification("warning", t('messages.notFound', { name: resource.name }));
     }
-    if (error.response?.status === 423){
-      addNotification(
-        "warning",
-        `Невозможно удалить используемый ресурс из системы`
-      );
+    if (error.response?.status === 423) {
+      addNotification("warning", t('messages.inUse'));
     }
-    if (error.response?.status === 400){
-      addNotification(
-        "warning",
-        `Некорректный запрос к серверу. Обратитесь в техподдержку`
-      );
+    if (error.response?.status === 400) {
+      addNotification("warning", t('messages.badRequest'));
     }
-    if (error.response?.status === 500){
-      const payload = error.response.data as {
-        message: string;
-      };
-      addNotification(
-        "error",
-        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
-      );
+    if (error.response?.status === 500) {
+      const payload = error.response.data as { message: string };
+      addNotification("error", t('messages.serverError'));
       console.error(payload.message);
     }
-  }
+  };
 
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Ресурс</h1>
+        <h1>{t('title')}</h1>
       </div>
 
       <div className="form-container">
         <div className="form-actions">
           <button className="btn btn-success" onClick={handleSave} disabled={loading}>
-            Сохранить
+            {t('buttons.save')}
           </button>
           {!isNew && (
             <>
               <button className="btn btn-warning" onClick={handleArchiveToggle} disabled={loading}>
-                {resource.isArchived ? 'В работу' : 'В архив'}
+                {resource.isArchived ? t('buttons.unarchive') : t('buttons.archive')}
               </button>
               <button className="btn btn-danger" onClick={handleDelete} disabled={loading}>
-                Удалить
+                {t('buttons.delete')}
               </button>
             </>
           )}
         </div>
 
         <div className="form-group">
-          <label>Наименование</label>
+          <label>{t('labels.name')}</label>
           <input
             type="text"
             value={resource.name}
@@ -194,4 +149,4 @@ const ResourceEditPage: React.FC = () => {
   );
 };
 
-export default ResourceEditPage; 
+export default ResourceEditPage;

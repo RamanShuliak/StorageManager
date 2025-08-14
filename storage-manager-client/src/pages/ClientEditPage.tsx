@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { clientApi } from '../services/api';
 import { Client } from '../types';
 import './Page.css';
@@ -8,11 +9,13 @@ import { AxiosError } from 'axios';
 import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const ClientEditPage: React.FC = () => {
-  useFaviconAndTitle('Клиент', '/icons/logo-icon.png');
+  const { t } = useTranslation('clientEdit');
+
+  useFaviconAndTitle(t('title'), '/icons/logo-icon.png');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isNew = id === undefined;
-  
+
   const [client, setClient] = useState<Client>({
     id: '',
     name: '',
@@ -39,34 +42,22 @@ const ClientEditPage: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if(client.name === ''){
-      addNotification(
-        "info",
-        `Имя клиента не может быть пустым`
-      );
+    if (client.name === '') {
+      addNotification("info", t('messages.emptyName'));
       return;
     }
     setLoading(true);
     try {
       if (isNew) {
-        await clientApi.createClient({
-          name: client.name,
-          address: client.address
-        });
-        addNotification(
-          "success",
-          `Клиент с именем "${client.name}" успешно создан`
-        );
+        await clientApi.createClient({ name: client.name, address: client.address });
+        addNotification("success", t('messages.created', { name: client.name }));
       } else {
         await clientApi.updateClient({
           id: client.id,
           name: client.name,
           address: client.address
         });
-        addNotification(
-          "success",
-          `Клиент с именем "${client.name}" успешно изменён`
-        );
+        addNotification("success", t('messages.updated', { name: client.name }));
       }
       navigate('/clients');
     } catch (error) {
@@ -78,14 +69,10 @@ const ClientEditPage: React.FC = () => {
 
   const handleDelete = async () => {
     if (isNew) return;
-    
-    if (window.confirm('Вы уверены, что хотите удалить этого клиента?')) {
+    if (window.confirm(t('confirmDelete') as string)) {
       try {
         await clientApi.deleteClient(client.id);
-        addNotification(
-          "success",
-          `Клиент с именем "${client.name}" успешно удалён`
-        );
+        addNotification("success", t('messages.deleted', { name: client.name }));
         navigate('/clients');
       } catch (error) {
         await handleServerExceptions(error);
@@ -97,16 +84,10 @@ const ClientEditPage: React.FC = () => {
     try {
       if (client.isArchived) {
         await clientApi.unarchiveClient(client.id);
-        addNotification(
-          "info",
-          `Клиент с именем "${client.name}" успешно разархивирован`
-        );
+        addNotification("info", t('messages.unarchived', { name: client.name }));
       } else {
         await clientApi.archiveClient(client.id);
-        addNotification(
-          "info",
-          `Клиент с именем "${client.name}" успешно архивирован`
-        );
+        addNotification("info", t('messages.archived', { name: client.name }));
       }
       setClient(prev => ({ ...prev, isArchived: !prev.isArchived }));
       navigate('/clients');
@@ -117,68 +98,44 @@ const ClientEditPage: React.FC = () => {
 
   const handleServerExceptions = async (err: unknown) => {
     const error = err as AxiosError;
-    if (error.response?.status === 409){
-      const payload = error.response.data as {
-        paramValue: string;
-        message: string;
-      };
-      addNotification(
-        "warning",
-        `Клиент с именем "${payload.paramValue}" уже существует`
-      );
+    if (error.response?.status === 409) {
+      const payload = error.response.data as { paramValue: string; message: string; };
+      addNotification("warning", t('errors.exists', { name: payload.paramValue }));
     }
-    if (error.response?.status === 404){
-      const payload = error.response.data as {
-        message: string;
-      };
-      addNotification(
-        "warning",
-        `Клиент с именем "${client.name}" не найден`
-      );
-      console.warn(payload.message);
+    if (error.response?.status === 404) {
+      addNotification("warning", t('errors.notFound', { name: client.name }));
     }
-    if (error.response?.status === 423){
-      addNotification(
-        "warning",
-        `Невозможно удалить используемого клиента из системы`
-      );
+    if (error.response?.status === 423) {
+      addNotification("warning", t('errors.locked'));
     }
-    if (error.response?.status === 400){
-      addNotification(
-        "warning",
-        `Некорректный запрос к серверу. Обратитесь в техподдержку`
-      );
+    if (error.response?.status === 400) {
+      addNotification("warning", t('errors.badRequest'));
     }
-    if (error.response?.status === 500){
-      const payload = error.response.data as {
-        message: string;
-      };
-      addNotification(
-        "error",
-        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
-      );
+    if (error.response?.status === 500) {
+      const payload = error.response.data as { message: string };
+      addNotification("error", t('errors.serverError'));
       console.error(payload.message);
     }
-  }
+  };
 
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Клиент</h1>
+        <h1>{t('title')}</h1>
       </div>
 
       <div className="form-container">
         <div className="form-actions">
           <button className="btn btn-success" onClick={handleSave} disabled={loading}>
-            Сохранить
+            {t('buttons.save')}
           </button>
           {!isNew && (
             <>
               <button className="btn btn-warning" onClick={handleArchiveToggle} disabled={loading}>
-                {client.isArchived ? 'В работу' : 'В архив'}
+                {client.isArchived ? t('buttons.toWork') : t('buttons.toArchive')}
               </button>
               <button className="btn btn-danger" onClick={handleDelete} disabled={loading}>
-                Удалить
+                {t('buttons.delete')}
               </button>
             </>
           )}
@@ -186,7 +143,7 @@ const ClientEditPage: React.FC = () => {
 
         <div className="form-row">
           <div className="form-group">
-            <label>Наименование</label>
+            <label>{t('form.name')}</label>
             <input
               type="text"
               value={client.name}
@@ -195,7 +152,7 @@ const ClientEditPage: React.FC = () => {
           </div>
 
           <div className="form-group">
-            <label>Адрес</label>
+            <label>{t('form.address')}</label>
             <input
               type="text"
               value={client.address}
@@ -208,4 +165,4 @@ const ClientEditPage: React.FC = () => {
   );
 };
 
-export default ClientEditPage; 
+export default ClientEditPage;

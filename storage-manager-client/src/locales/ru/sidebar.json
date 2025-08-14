@@ -1,0 +1,21 @@
+{
+    "header": "Управление складом",
+    "sections": {
+      "warehouse": "Склад",
+      "directories": "Справочники",
+      "language": "Язык"
+    },
+    "links": {
+      "balance": "Баланс",
+      "receipts": "Поступления",
+      "shipments": "Отгрузки",
+      "clients": "Клиенты",
+      "resources": "Ресурсы",
+      "measures": "Единицы измерения"
+    },
+    "languages": {
+      "ru": "Русский",
+      "en": "Английский"
+    }
+  }
+  

@@ -1,0 +1,18 @@
+{
+    "title": "Clients",
+    "columns": {
+      "name": "Name",
+      "address": "Address"
+    },
+    "buttons": {
+      "add": "Add",
+      "archive": "Archive",
+      "toActive": "To active"
+    },
+    "loading": "Loading...",
+    "errors": {
+      "badRequest": "Bad request to the server. Please contact support",
+      "serverError": "A server error occurred. Please try again later or contact support"
+    }
+  }
+  

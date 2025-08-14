@@ -1,0 +1,16 @@
+{
+    "title": "Balance",
+    "loading": "Loading...",
+    "columns": {
+      "resourceName": "Resource",
+      "measureName": "Unit of Measure",
+      "amount": "Amount"
+    },
+    "errors": {
+      "measureNotFound": "Unit of measure named \"{{name}}\" not found",
+      "resourceNotFound": "Resource named \"{{name}}\" not found",
+      "badRequest": "Bad request to the server. Please contact support",
+      "serverError": "A server error occurred. Please try again later or contact support"
+    }
+  }
+  

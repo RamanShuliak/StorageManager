@@ -1,27 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { shipmentApi, resourceApi, measureApi, clientApi } from '../services/api';
-import { 
-  ShipmentDocument, 
-  ShipmentResource, 
-  Resource, 
-  Measure, 
+import {
+  ShipmentDocument,
+  ShipmentResource,
+  Resource,
+  Measure,
   Client,
   CreateShipmentResourceRequest,
   UpdateShipmentResourceRequest,
-  UpdateShipmentDocumentRequest} from '../types';
+  UpdateShipmentDocumentRequest
+} from '../types';
 import './Page.css';
-import { useNotification } from "../components/notifications/NotificationContext";
+import { useNotification } from '../components/notifications/NotificationContext';
 import { AxiosError } from 'axios';
 import { DropdownSelect } from '../components/DropdownSelect';
 import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const ShipmentEditPage: React.FC = () => {
-  useFaviconAndTitle('Отгрузка', '/icons/logo-icon.png');
+  const { t } = useTranslation('shipmentEdit');
+
+  useFaviconAndTitle(t('title'), '/icons/logo-icon.png');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isNew = id === undefined;
-  
+
   const [shipment, setShipment] = useState<ShipmentDocument>({
     id: '',
     number: '',
@@ -49,7 +53,7 @@ const ShipmentEditPage: React.FC = () => {
 
   const loadData = async () => {
     try {
-      setDeletedResourceIds([]); 
+      setDeletedResourceIds([]);
       const [resourcesResponse, measuresResponse, clientsResponse] = await Promise.all([
         resourceApi.getResources(false),
         measureApi.getMeasures(false),
@@ -75,21 +79,14 @@ const ShipmentEditPage: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if(shipment.number === ''){
-      addNotification(
-        "info",
-        `Номер документа не может быть пустым`
-      );
+    if (shipment.number === '') {
+      addNotification('info', t('notifications.emptyNumber'));
       return;
     }
-    if(shipment.clientId === ''
-      || shipment.clientId === undefined){
-        addNotification(
-          "info",
-          `Укажите клиента для документа отгрузки`
-        );
-        return;
-      }
+    if (shipment.clientId === '' || shipment.clientId === undefined) {
+      addNotification('info', t('notifications.emptyClient'));
+      return;
+    }
     setLoading(true);
     try {
       if (isNew) {
@@ -103,10 +100,7 @@ const ShipmentEditPage: React.FC = () => {
             amount: r.amount
           }))
         });
-        addNotification(
-          "success",
-          `Документ отгрузки "${shipment.number}" успешно создан`
-        );
+        addNotification('success', t('notifications.createSuccess', { number: shipment.number }));
       } else {
         const { createResources, updateResources } = buildUpdateArrays();
 
@@ -122,10 +116,7 @@ const ShipmentEditPage: React.FC = () => {
         };
 
         await shipmentApi.updateShipment(updateReq);
-        addNotification(
-          "success",
-          `Документ отгрузки "${shipment.number}" успешно изменён`
-        );
+        addNotification('success', t('notifications.updateSuccess', { number: shipment.number }));
       }
       navigate('/shipments');
     } catch (error) {
@@ -137,14 +128,11 @@ const ShipmentEditPage: React.FC = () => {
 
   const handleDelete = async () => {
     if (isNew) return;
-    
-    if (window.confirm('Вы уверены, что хотите удалить эту отгрузку?')) {
+
+    if (window.confirm(t('confirm.delete') as string)) {
       try {
         await shipmentApi.deleteShipment(shipment.id);
-        addNotification(
-          "success",
-          `Документ отгрузки "${shipment.number}" успешно удалён`
-        );
+        addNotification('success', t('notifications.deleteSuccess', { number: shipment.number }));
         navigate('/shipments');
       } catch (error) {
         await handleServerExceptions(error);
@@ -165,9 +153,9 @@ const ShipmentEditPage: React.FC = () => {
         const changed =
           orig &&
           (orig.resourceId !== r.resourceId ||
-           orig.measureId   !== r.measureId   ||
-           orig.amount      !== r.amount);
-  
+            orig.measureId !== r.measureId ||
+            orig.amount !== r.amount);
+
         if (changed) {
           updateResources.push({
             id: r.id,
@@ -178,7 +166,7 @@ const ShipmentEditPage: React.FC = () => {
         }
       }
     });
-  
+
     return { createResources, updateResources };
   };
 
@@ -202,11 +190,7 @@ const ShipmentEditPage: React.FC = () => {
     setShipment(prev => {
       const toRemove = prev.resources[index];
       if (!toRemove.id.startsWith('temp-')) {
-        setDeletedResourceIds(prevIds =>
-          prevIds.includes(toRemove.id)
-            ? prevIds
-            : [...prevIds, toRemove.id]
-        );
+        setDeletedResourceIds(prevIds => (prevIds.includes(toRemove.id) ? prevIds : [...prevIds, toRemove.id]));
       }
       return {
         ...prev,
@@ -215,12 +199,11 @@ const ShipmentEditPage: React.FC = () => {
     });
   };
 
-
   const updateResource = (index: number, field: keyof ShipmentResource, value: any) => {
     setShipment(prev => {
       const updatedResources = [...prev.resources];
       const resource = { ...updatedResources[index] };
-      
+
       if (field === 'resourceId') {
         const selectedResource = resources.find(r => r.id === value);
         resource.resourceId = value;
@@ -232,7 +215,7 @@ const ShipmentEditPage: React.FC = () => {
       } else {
         (resource as any)[field] = value;
       }
-      
+
       updatedResources[index] = resource;
       return { ...prev, resources: updatedResources };
     });
@@ -249,140 +232,117 @@ const ShipmentEditPage: React.FC = () => {
 
   const handleServerExceptions = async (err: unknown) => {
     const error = err as AxiosError;
-    if (error.response?.status === 409){
+
+    if (error.response?.status === 409) {
       const payload = error.response.data as {
         paramValue: string;
         message: string;
       };
-      addNotification(
-        "warning",
-        `Документ отгрузки с номером "${payload.paramValue}" уже существует`
-      );
+      addNotification('warning', t('errors.conflictNumber', { paramValue: payload.paramValue }));
     }
-    if (error.response?.status === 404){
+
+    if (error.response?.status === 404) {
       const payload = error.response.data as {
         entityType: string;
         paramName: string;
         paramValue: string;
         message: string;
       };
-      if(payload.entityType === "ShipmentResource"){
+
+      if (payload.entityType === 'ShipmentResource') {
         addNotification(
-          "warning",
-          `Русурс отгрузки c "${payload.paramName}" = "${payload.paramValue}" не найден при попытке изменения документа`
+          'warning',
+          t('errors.notFound.shipmentResource', { paramName: payload.paramName, paramValue: payload.paramValue })
         );
       }
-      if(payload.entityType === "ShipmentDocument"){
-        addNotification(
-          "warning",
-          `Документ отгрузки с номером "${shipment.number}" не найден`
-        );
+      if (payload.entityType === 'ShipmentDocument') {
+        addNotification('warning', t('errors.notFound.shipmentDocument', { number: shipment.number }));
       }
-      if(payload.entityType === "Measure"){
-        var measureName = measures.find(m => m.id === payload.paramValue)?.name;
-        addNotification(
-          "warning",
-          `Единица измерения с именем "${measureName}" не найдена`
-        );
+      if (payload.entityType === 'Measure') {
+        const measureName = measures.find(m => m.id === payload.paramValue)?.name;
+        addNotification('warning', t('errors.notFound.measureByName', { measureName }));
       }
-      if(payload.entityType === "Resource"){
-        var resourceName = resources.find(r => r.id === payload.paramValue)?.name;
-        addNotification(
-          "warning",
-          `Ресурс с именем "${resourceName}" не найден`
-        );
+      if (payload.entityType === 'Resource') {
+        const resourceName = resources.find(r => r.id === payload.paramValue)?.name;
+        addNotification('warning', t('errors.notFound.resourceByName', { resourceName }));
       }
-      if(payload.entityType === "Client"){
-        var clientName = clients.find(c => c.id === payload.paramValue)?.name;
-        addNotification(
-          "warning",
-          `Клиент с именем "${clientName}" не найден`
-        );
+      if (payload.entityType === 'Client') {
+        const clientName = clients.find(c => c.id === payload.paramValue)?.name;
+        addNotification('warning', t('errors.notFound.clientByName', { clientName }));
       }
     }
-    if (error.response?.status === 410){
+
+    if (error.response?.status === 410) {
       const payload = error.response.data as {
         resourceId: string;
         measureId: string;
         message: string;
       };
-      var measureName = measures.find(m => m.id === payload.measureId)?.name;
-      var resourceName = resources.find(r => r.id === payload.resourceId)?.name
-      addNotification(
-        "warning",
-        `Баланс ресурса "${resourceName}" - "${measureName}" не найден`
-      );
+      const measureName = measures.find(m => m.id === payload.measureId)?.name;
+      const resourceName = resources.find(r => r.id === payload.resourceId)?.name;
+      addNotification('warning', t('errors.balanceNotFound', { resourceName, measureName }));
     }
-    if (error.response?.status === 422){
+
+    if (error.response?.status === 422) {
       const payload = error.response.data as {
         resourceId: string;
         measureId: string;
         message: string;
       };
-      var measureName = measures.find(m => m.id === payload.measureId)?.name;
-      var resourceName = resources.find(r => r.id === payload.resourceId)?.name
-      addNotification(
-        "warning",
-        `Ресурса "${resourceName}" - "${measureName}" недостаточно на складе`
-      );
+      const measureName = measures.find(m => m.id === payload.measureId)?.name;
+      const resourceName = resources.find(r => r.id === payload.resourceId)?.name;
+      addNotification('warning', t('errors.insufficient', { resourceName, measureName }));
     }
-    if (error.response?.status === 412){
+
+    if (error.response?.status === 412) {
       const payload = error.response.data as {
         documentNumber: string;
         message: string;
       };
-      addNotification(
-        "warning",
-        `Документ "${payload.documentNumber}" нельзя создать без ресурсов отгрузки`
-      );
+      addNotification('warning', t('errors.noResources', { documentNumber: payload.documentNumber }));
     }
-    if (error.response?.status === 400){
-      addNotification(
-        "warning",
-        `Некорректный запрос к серверу. Обратитесь в техподдержку`
-      );
+
+    if (error.response?.status === 400) {
+      addNotification('warning', t('errors.badRequest'));
     }
-    if (error.response?.status === 500){
-      const payload = error.response.data as {
-        message: string;
-      };
-      addNotification(
-        "error",
-        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
-      );
+
+    if (error.response?.status === 500) {
+      const payload = error.response.data as { message: string };
+      addNotification('error', t('errors.serverError'));
       console.error(payload.message);
     }
-  }
+  };
 
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Отгрузка</h1>
+        <h1>{t('title')}</h1>
       </div>
 
       <div className="form-container">
         <div className="form-actions">
           <button className="btn btn-success" onClick={handleSave} disabled={loading}>
-            Сохранить
+            {t('buttons.save')}
           </button>
           {!isNew && (
             <button className="btn btn-danger" onClick={handleDelete} disabled={loading}>
-              Удалить
+              {t('buttons.delete')}
             </button>
           )}
         </div>
+
         <div className="form-row">
           <div className="form-group">
-            <label>Номер</label>
+            <label>{t('labels.number')}</label>
             <input
               type="text"
               value={shipment.number}
-              onChange={(e) => setShipment(prev => ({ ...prev, number: e.target.value }))}
+              onChange={e => setShipment(prev => ({ ...prev, number: e.target.value }))}
             />
           </div>
 
           <div className="form-group">
-            <label>Дата и время</label>
+            <label>{t('labels.dateTime')}</label>
             <input
               type="datetime-local"
               value={dateInput}
@@ -399,69 +359,65 @@ const ShipmentEditPage: React.FC = () => {
         </div>
 
         <div className="form-row">
-        <div className="form-group">
-          <label>Клиент</label>
-          <DropdownSelect
-            placeholder="Выберите клиента"
-            options={clients}
-            value={shipment.clientId}
-            onChange={val => updateClient(val)}
-            className="ds-wide"
-          />
-        </div>
-
-        {!isNew && (
           <div className="form-group">
-            <label>Статус</label>
+            <label>{t('labels.client')}</label>
             <DropdownSelect
-              placeholder="Выберите статус"
-              
-              options={[
-                { id: 'false', name: 'не подписан' },
-                { id: 'true',  name: 'подписан'  }
-              ]}
-              
-              value={String(shipment.isSigned)}
-              
-              onChange={val =>
-                setShipment(prev => ({
-                  ...prev,
-                  isSigned: val === 'true'
-                }))
-              }
+              placeholder={t('placeholders.selectClient')}
+              options={clients}
+              value={shipment.clientId}
+              onChange={val => updateClient(val)}
               className="ds-wide"
             />
           </div>
-        )}
+
+          {!isNew && (
+            <div className="form-group">
+              <label>{t('labels.status')}</label>
+              <DropdownSelect
+                placeholder={t('placeholders.selectStatus')}
+                options={[
+                  { id: 'false', name: t('status.unsigned') },
+                  { id: 'true', name: t('status.signed') }
+                ]}
+                value={String(shipment.isSigned)}
+                onChange={val =>
+                  setShipment(prev => ({
+                    ...prev,
+                    isSigned: val === 'true'
+                  }))
+                }
+                className="ds-wide"
+              />
+            </div>
+          )}
         </div>
 
         <div className="resource-table">
-          <h3>Ресурсы</h3>
+          <h3>{t('section.resources')}</h3>
           <table>
             <thead>
               <tr>
                 <th className="action-cell">
-                  <button className="action-btn add-btn" onClick={addResource}>+</button>
+                  <button className="action-btn add-btn" onClick={addResource}>
+                    +
+                  </button>
                 </th>
-                <th>Ресурс</th>
-                <th>Единица измерения</th>
-                <th>Количество</th>
+                <th>{t('table.resource')}</th>
+                <th>{t('table.measure')}</th>
+                <th>{t('table.amount')}</th>
               </tr>
             </thead>
             <tbody>
               {shipment.resources.map((resource, index) => (
                 <tr key={resource.id}>
                   <td className="action-cell">
-                    <button 
-                      className="action-btn delete-btn" 
-                      onClick={() => removeResource(index)}
-                    >
+                    <button className="action-btn delete-btn" onClick={() => removeResource(index)}>
                       ×
                     </button>
                   </td>
                   <td>
                     <DropdownSelect
-                      placeholder="Выберите ресурс"
+                      placeholder={t('placeholders.selectResource')}
                       options={resources}
                       value={resource.resourceId}
                       onChange={val => updateResource(index, 'resourceId', val)}
@@ -469,17 +425,18 @@ const ShipmentEditPage: React.FC = () => {
                   </td>
                   <td>
                     <DropdownSelect
-                      placeholder="Выберите меру"
+                      placeholder={t('placeholders.selectMeasure')}
                       options={measures}
                       value={resource.measureId}
                       onChange={val => updateResource(index, 'measureId', val)}
                     />
                   </td>
                   <td>
-                    <input className="unset-border"
+                    <input
+                      className="unset-border"
                       type="number"
                       value={resource.amount}
-                      onChange={(e) => updateResource(index, 'amount', Number(e.target.value))}
+                      onChange={e => updateResource(index, 'amount', Number(e.target.value))}
                       min="0"
                     />
                   </td>
@@ -493,4 +450,4 @@ const ShipmentEditPage: React.FC = () => {
   );
 };
 
-export default ShipmentEditPage; 
+export default ShipmentEditPage;

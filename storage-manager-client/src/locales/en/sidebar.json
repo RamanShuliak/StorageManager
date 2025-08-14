@@ -1,0 +1,21 @@
+{
+    "header": "Storage Management",
+    "sections": {
+      "warehouse": "Storage",
+      "directories": "Directories",
+      "language": "Language"
+    },
+    "links": {
+      "balance": "Balance",
+      "receipts": "Receipts",
+      "shipments": "Shipments",
+      "clients": "Clients",
+      "resources": "Resources",
+      "measures": "Units of Measure"
+    },
+    "languages": {
+      "ru": "Russian",
+      "en": "English"
+    }
+  }
+  
