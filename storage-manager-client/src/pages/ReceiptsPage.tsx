@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { receiptApi, resourceApi, measureApi } from '../services/api';
 import { ReceiptDocument, Resource, Measure } from '../types';
 import FilterPanel from '../components/FilterPanel';
@@ -10,7 +11,9 @@ import { AxiosError } from 'axios';
 import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const ReceiptsPage: React.FC = () => {
-  useFaviconAndTitle('Поступления', '/icons/logo-icon.png');
+  const { t } = useTranslation('receipts');
+
+  useFaviconAndTitle(t('title'), '/icons/logo-icon.png');
   const navigate = useNavigate();
   const [receipts, setReceipts] = useState<ReceiptDocument[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -27,22 +30,16 @@ const ReceiptsPage: React.FC = () => {
   const { addNotification } = useNotification();
   
   useEffect(() => {
-    console.log('ReceiptsPage useEffect triggered');
     loadFilters();
   }, []);
 
   const loadFilters = async () => {
-    console.log('Loading filters...');
     try {
       const [resourcesResponse, measuresResponse, numbersResponse] = await Promise.all([
         resourceApi.getResources(false),
         measureApi.getMeasures(false),
         receiptApi.getReceiptNumbers()
       ]);
-      console.log('Filters loaded:', { 
-        resources: resourcesResponse.data, 
-        measures: measuresResponse.data,
-        numbers: numbersResponse.data });
       setResources(resourcesResponse.data);
       setMeasures(measuresResponse.data);
       setNumbers(numbersResponse.data);
@@ -54,14 +51,6 @@ const ReceiptsPage: React.FC = () => {
   };
 
   const loadReceipts = async () => {
-    console.log('Loading receipts with filters:', {
-      selectedResources,
-      selectedMeasures,
-      selectedNumbers,
-      dateFrom,
-      dateTo
-    });
-    
     setLoading(true);
     try {
       const filters = {
@@ -72,8 +61,6 @@ const ReceiptsPage: React.FC = () => {
         dateTo: dateTo || undefined,
       };
       const response = await receiptApi.getReceipts(filters);
-      console.log('Receipts API response:', response);
-      console.log('Receipts data:', response.data);
       setReceipts(response.data || []);
     } catch (error) {
       await handleServerExceptions(error);
@@ -110,8 +97,6 @@ const ReceiptsPage: React.FC = () => {
     }];
   });
 
-  console.log('Final tableData:', tableData);
-
   const handleRowClick = (item: any) => {
     navigate(`/receipts/${item.receiptId}`);
   };
@@ -122,36 +107,28 @@ const ReceiptsPage: React.FC = () => {
 
   const handleServerExceptions = async (err: unknown) => {
     const error = err as AxiosError;
-    if (error.response?.status === 400){
-      addNotification(
-        "warning",
-        `Некорректный запрос к серверу. Обратитесь в техподдержку`
-      );
+    if (error.response?.status === 400) {
+      addNotification("warning", t('errors.badRequest'));
     }
-    if (error.response?.status === 500){
-      const payload = error.response.data as {
-        message: string;
-      };
-      addNotification(
-        "error",
-        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
-      );
+    if (error.response?.status === 500) {
+      const payload = error.response.data as { message: string };
+      addNotification("error", t('errors.serverError'));
       console.error(payload.message);
     }
-  }
+  };
 
   const columns = [
-    { key: 'number', header: 'Номер' },
-    { key: 'receiptDate', header: 'Дата' },
-    { key: 'resourceName', header: 'Ресурс' },
-    { key: 'measureName', header: 'Единица измерения' },
-    { key: 'amount', header: 'Количество' },
+    { key: 'number', header: t('columns.number') },
+    { key: 'receiptDate', header: t('columns.date') },
+    { key: 'resourceName', header: t('columns.resource') },
+    { key: 'measureName', header: t('columns.measure') },
+    { key: 'amount', header: t('columns.amount') },
   ];
 
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Поступления</h1>
+        <h1>{t('title')}</h1>
       </div>
 
       <FilterPanel
@@ -177,12 +154,12 @@ const ReceiptsPage: React.FC = () => {
 
       <div className="page-actions">
         <button className="btn btn-success" onClick={handleAddClick}>
-          Добавить
+          {t('buttons.add')}
         </button>
       </div>
 
       {loading ? (
-        <div className="loading">Загрузка...</div>
+        <div className="loading">{t('loading')}</div>
       ) : (
         <DataTable
           columns={columns}
@@ -194,4 +171,4 @@ const ReceiptsPage: React.FC = () => {
   );
 };
 
-export default ReceiptsPage; 
+export default ReceiptsPage;

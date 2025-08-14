@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './FilterPanel.css';
 
 interface FilterOption {
@@ -51,6 +52,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   showNumberFilter = false,
   showDateFilters = false,
 }) => {
+  const { t } = useTranslation('filterPanel');
+
   const [openFilter, setOpenFilter] = useState<
     'resources' | 'measures' | 'clients' | 'numbers' | null
   >(null);
@@ -65,7 +68,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     placeholder: string,
     _options: FilterOption[] | string[],
     selected: string[]
-  ) => (selected.length ? `Выбрано ${selected.length}` : placeholder);
+  ) => (selected.length ? t('common.selectedCount', { count: selected.length }) : placeholder);
 
   const handleCheck =
     (
@@ -101,13 +104,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       <div className="filter-row">
         {resources && (
           <div className="filter-group dropdown">
-            <label>Ресурс</label>
+            <label>{t('labels.resource')}</label>
             <button
               type="button"
               className="dropdown-toggle"
               onClick={() => toggleDropdown('resources')}
             >
-              {buildLabel('Выберите ресурс', resources, selectedResources)}
+              {buildLabel(t('placeholders.resource'), resources, selectedResources)}
             </button>
             {openFilter === 'resources' && (
               <ul className="dropdown-menu">
@@ -134,14 +137,14 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
         {measures && (
           <div className="filter-group dropdown">
-            <label>Единица измерения</label>
+            <label>{t('labels.measure')}</label>
             <button
               type="button"
               className="dropdown-toggle"
               onClick={() => toggleDropdown('measures')}
             >
               {buildLabel(
-                'Выберите единицу измерения',
+                t('placeholders.measure'),
                 measures,
                 selectedMeasures
               )}
@@ -171,13 +174,13 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
 
         {showClientFilter && clients && (
           <div className="filter-group dropdown">
-            <label>Клиент</label>
+            <label>{t('labels.client')}</label>
             <button
               type="button"
               className="dropdown-toggle"
               onClick={() => toggleDropdown('clients')}
             >
-              {buildLabel('Выберите клиента', clients, selectedClients)}
+              {buildLabel(t('placeholders.client'), clients, selectedClients)}
             </button>
             {openFilter === 'clients' && (
               <ul className="dropdown-menu">
@@ -204,69 +207,71 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
       </div>
 
       {showNumberFilter && numbers && showDateFilters && (
-      <div className="filter-row">
-        {showNumberFilter && numbers && (
-          <div className="filter-group dropdown">
-            <label>Номер документа</label>
-            <button
-              type="button"
-              className="dropdown-toggle"
-              onClick={() => toggleDropdown('numbers')}
-            >
-              {buildLabel(
-                'Выберите номер документа',
-                numbers,
-                selectedNumbers
+        <div className="filter-row">
+          {showNumberFilter && numbers && (
+            <div className="filter-group dropdown">
+              <label>{t('labels.number')}</label>
+              <button
+                type="button"
+                className="dropdown-toggle"
+                onClick={() => toggleDropdown('numbers')}
+              >
+                {buildLabel(
+                  t('placeholders.number'),
+                  numbers,
+                  selectedNumbers
+                )}
+              </button>
+              {openFilter === 'numbers' && (
+                <ul className="dropdown-menu">
+                  {numbers.map(num => (
+                    <li key={num} className="dropdown-item">
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={selectedNumbers.includes(num)}
+                          onChange={handleCheck(
+                            num,
+                            selectedNumbers,
+                            onNumberChange
+                          )}
+                        />
+                        <span>{num}</span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
               )}
-            </button>
-            {openFilter === 'numbers' && (
-              <ul className="dropdown-menu">
-                {numbers.map(num => (
-                  <li key={num} className="dropdown-item">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={selectedNumbers.includes(num)}
-                        onChange={handleCheck(
-                          num,
-                          selectedNumbers,
-                          onNumberChange
-                        )}
-                      />
-                      <span>{num}</span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-        {showDateFilters && (
-          <div className="date-filters">
-            <div className="date-inputs">
-              <div className="filter-group">
-                <label>От</label>
-                <input
-                  type="date"
-                  value={asDateInput(dateFrom)}
-                  onChange={handleDateChange(onDateFromChange)}
-                />
-              </div>
-              <div className="filter-group">
-                <label>До</label>
-                <input
-                  type="date"
-                  value={asDateInput(dateTo)}
-                  onChange={handleDateChange(onDateToChange, true)}
-                />
+            </div>
+          )}
+          {showDateFilters && (
+            <div className="date-filters">
+              <div className="date-inputs">
+                <div className="filter-group">
+                  <label>{t('labels.from')}</label>
+                  <input
+                    type="date"
+                    value={asDateInput(dateFrom)}
+                    onChange={handleDateChange(onDateFromChange)}
+                  />
+                </div>
+                <div className="filter-group">
+                  <label>{t('labels.to')}</label>
+                  <input
+                    type="date"
+                    value={asDateInput(dateTo)}
+                    onChange={handleDateChange(onDateToChange, true)}
+                  />
+                </div>
               </div>
             </div>
-          </div>)}
-        </div>)}
+          )}
+        </div>
+      )}
 
       <div className="filter-actions">
         <button className="btn btn-primary" onClick={onSearch}>
-          Поиск
+          {t('common.search')}
         </button>
       </div>
     </div>

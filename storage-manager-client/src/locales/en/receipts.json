@@ -1,0 +1,19 @@
+{
+    "title": "Receipts",
+    "columns": {
+      "number": "Number",
+      "date": "Date",
+      "resource": "Resource",
+      "measure": "Unit of Measure",
+      "amount": "Amount"
+    },
+    "buttons": {
+      "add": "Add"
+    },
+    "loading": "Loading...",
+    "errors": {
+      "badRequest": "Bad request to the server. Please contact support",
+      "serverError": "A server error occurred. Please try again later or contact support"
+    }
+  }
+  

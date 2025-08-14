@@ -1,0 +1,27 @@
+{
+    "title": "Unit of Measure",
+    "labels": {
+      "name": "Name"
+    },
+    "buttons": {
+      "save": "Save",
+      "archive": "Archive",
+      "unarchive": "To active",
+      "delete": "Delete"
+    },
+    "messages": {
+      "emptyName": "Unit name cannot be empty",
+      "created": "Unit of measure \"{{name}}\" created successfully",
+      "updated": "Unit of measure \"{{name}}\" updated successfully",
+      "deleted": "Unit of measure \"{{name}}\" deleted successfully",
+      "archived": "Unit of measure \"{{name}}\" archived",
+      "unarchived": "Unit of measure \"{{name}}\" unarchived",
+      "confirmDelete": "Are you sure you want to delete this unit of measure?",
+      "exists": "Unit of measure \"{{name}}\" already exists",
+      "notFound": "Unit of measure \"{{name}}\" not found",
+      "inUse": "Unable to delete a unit of measure that is in use",
+      "badRequest": "Bad request to the server. Please contact support",
+      "serverError": "A server error occurred. Please try again later or contact support"
+    }
+  }
+  

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { shipmentApi, resourceApi, measureApi, clientApi } from '../services/api';
 import { ShipmentDocument, Resource, Measure, Client } from '../types';
 import FilterPanel from '../components/FilterPanel';
@@ -10,7 +11,9 @@ import { AxiosError } from 'axios';
 import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const ShipmentsPage: React.FC = () => {
-  useFaviconAndTitle('Отгрузки', '/icons/logo-icon.png');
+  const { t } = useTranslation('shipments');
+
+  useFaviconAndTitle(t('title'), '/icons/logo-icon.png');
   const navigate = useNavigate();
   const [shipments, setShipments] = useState<ShipmentDocument[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -28,12 +31,10 @@ const ShipmentsPage: React.FC = () => {
   const { addNotification } = useNotification();
 
   useEffect(() => {
-    console.log('ShipmentsPage useEffect triggered');
     loadFilters();
   }, []);
 
   const loadFilters = async () => {
-    console.log('Loading filters...');
     try {
       const [resourcesResponse, measuresResponse, clientsResponse, numbersResponse] = await Promise.all([
         resourceApi.getResources(false),
@@ -41,12 +42,7 @@ const ShipmentsPage: React.FC = () => {
         clientApi.getClients(false),
         shipmentApi.getShipmentNumbers()
       ]);
-      console.log('Filters loaded:', { 
-        resources: resourcesResponse.data, 
-        measures: measuresResponse.data,
-        clients: clientsResponse.data,
-        numbers: numbersResponse.data 
-      });
+
       setResources(resourcesResponse.data);
       setMeasures(measuresResponse.data);
       setClients(clientsResponse.data);
@@ -59,15 +55,6 @@ const ShipmentsPage: React.FC = () => {
   };
 
   const loadShipments = async () => {
-    console.log('Loading shipments with filters:', {
-      selectedResources,
-      selectedMeasures,
-      selectedClients,
-      selectedNumbers,
-      dateFrom,
-      dateTo
-    });
-    
     setLoading(true);
     try {
       const filters = {
@@ -79,8 +66,6 @@ const ShipmentsPage: React.FC = () => {
         dateTo: dateTo || undefined,
       };
       const response = await shipmentApi.getShipments(filters);
-      console.log('Shipments API response:', response);
-      console.log('Shipments data:', response.data);
       setShipments(response.data || []);
     } catch (error) {
       await handleServerExceptions(error);
@@ -90,24 +75,19 @@ const ShipmentsPage: React.FC = () => {
     }
   };
 
-  const tableData = shipments?.flatMap(shipment => {
-    console.log('Processing shipment:', shipment);
-    console.log('Shipment resources:', shipment.resources);
-    
-    return shipment.resources?.map(resource => ({
+  const tableData = shipments?.flatMap(shipment =>
+    shipment.resources?.map(resource => ({
       number: shipment.number,
       shipmentDate: new Date(shipment.shipmentDate).toLocaleDateString('en-GB', { timeZone: 'UTC' }),
       clientName: shipment.clientName,
-      isSigned: shipment.isSigned ? 'подписан' : 'не подписан',
+      isSigned: shipment.isSigned ? t('status.signed') : t('status.unsigned'),
       resourceName: resource.resourceName,
       measureName: resource.measureName,
       amount: resource.amount,
       shipmentId: shipment.id,
       resourceId: resource.id,
-    })) || [];
-  }) || [];
-
-  console.log('Final tableData:', tableData);
+    })) || []
+  ) || [];
 
   const handleRowClick = (item: any) => {
     navigate(`/shipments/${item.shipmentId}`);
@@ -119,38 +99,30 @@ const ShipmentsPage: React.FC = () => {
 
   const handleServerExceptions = async (err: unknown) => {
     const error = err as AxiosError;
-    if (error.response?.status === 400){
-      addNotification(
-        "warning",
-        `Некорректный запрос к серверу. Обратитесь в техподдержку`
-      );
+    if (error.response?.status === 400) {
+      addNotification("warning", t('errors.badRequest'));
     }
-    if (error.response?.status === 500){
-      const payload = error.response.data as {
-        message: string;
-      };
-      addNotification(
-        "error",
-        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
-      );
+    if (error.response?.status === 500) {
+      const payload = error.response.data as { message: string };
+      addNotification("error", t('errors.serverError'));
       console.error(payload.message);
     }
-  }
+  };
 
   const columns = [
-    { key: 'number', header: 'Номер' },
-    { key: 'shipmentDate', header: 'Дата' },
-    { key: 'clientName', header: 'Клиент' },
-    { key: 'isSigned', header: 'Статус' },
-    { key: 'resourceName', header: 'Ресурс' },
-    { key: 'measureName', header: 'Единица измерения' },
-    { key: 'amount', header: 'Количество' },
+    { key: 'number', header: t('columns.number') },
+    { key: 'shipmentDate', header: t('columns.date') },
+    { key: 'clientName', header: t('columns.client') },
+    { key: 'isSigned', header: t('columns.status') },
+    { key: 'resourceName', header: t('columns.resource') },
+    { key: 'measureName', header: t('columns.measure') },
+    { key: 'amount', header: t('columns.amount') },
   ];
 
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Отгрузки</h1>
+        <h1>{t('title')}</h1>
       </div>
 
       <FilterPanel
@@ -178,12 +150,12 @@ const ShipmentsPage: React.FC = () => {
 
       <div className="page-actions">
         <button className="btn btn-success" onClick={handleAddClick}>
-          Добавить
+          {t('buttons.add')}
         </button>
       </div>
 
       {loading ? (
-        <div className="loading">Загрузка...</div>
+        <div className="loading">{t('loading')}</div>
       ) : (
         <DataTable
           columns={columns}
@@ -195,4 +167,4 @@ const ShipmentsPage: React.FC = () => {
   );
 };
 
-export default ShipmentsPage; 
+export default ShipmentsPage;

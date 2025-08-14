@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { resourceApi } from '../services/api';
 import { Resource } from '../types';
 import DataTable from '../components/DataTable';
@@ -9,7 +10,9 @@ import { AxiosError } from 'axios';
 import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const ResourcesPage: React.FC = () => {
-  useFaviconAndTitle('Ресурсы', '/icons/logo-icon.png');
+  const { t } = useTranslation('resourcesPage');
+
+  useFaviconAndTitle(t('title'), '/icons/logo-icon.png');
   const navigate = useNavigate();
   const location = useLocation();
   const [resources, setResources] = useState<Resource[]>([]);
@@ -43,56 +46,44 @@ const ResourcesPage: React.FC = () => {
   };
 
   const handleArchiveClick = () => {
-    if (isArchived) {
-      navigate('/resources');
-    } else {
-      navigate('/resources/archive');
-    }
+    navigate(isArchived ? '/resources' : '/resources/archive');
   };
 
   const handleServerExceptions = async (err: unknown) => {
     const error = err as AxiosError;
-    if (error.response?.status === 400){
-      addNotification(
-        "warning",
-        `Некорректный запрос к серверу. Обратитесь в техподдержку`
-      );
+    if (error.response?.status === 400) {
+      addNotification("warning", t('errors.badRequest'));
     }
-    if (error.response?.status === 500){
-      const payload = error.response.data as {
-        message: string;
-      };
-      addNotification(
-        "error",
-        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
-      );
+    if (error.response?.status === 500) {
+      const payload = error.response.data as { message: string };
+      addNotification("error", t('errors.serverError'));
       console.error(payload.message);
     }
-  }
+  };
 
   const columns = [
-    { key: 'name', header: 'Наименование' },
+    { key: 'name', header: t('columns.name') }
   ];
 
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Ресурсы</h1>
+        <h1>{t('title')}</h1>
       </div>
 
       <div className="page-actions">
         {!isArchived && (
           <button className="btn btn-success" onClick={handleAddClick}>
-            Добавить
+            {t('buttons.add')}
           </button>
         )}
         <button className="btn btn-warning" onClick={handleArchiveClick}>
-          {isArchived ? 'К рабочим' : 'Архив'}
+          {isArchived ? t('buttons.toActive') : t('buttons.archive')}
         </button>
       </div>
 
       {loading ? (
-        <div className="loading">Загрузка...</div>
+        <div className="loading">{t('loading')}</div>
       ) : (
         <DataTable
           columns={columns}
@@ -104,4 +95,4 @@ const ResourcesPage: React.FC = () => {
   );
 };
 
-export default ResourcesPage; 
+export default ResourcesPage;

@@ -1,0 +1,17 @@
+{
+    "title": "Units of Measure",
+    "columns": {
+      "name": "Name"
+    },
+    "buttons": {
+      "add": "Add",
+      "archive": "Archive",
+      "toActive": "To active"
+    },
+    "loading": "Loading...",
+    "errors": {
+      "badRequest": "Bad request to the server. Please contact support",
+      "serverError": "A server error occurred. Please try again later or contact support"
+    }
+  }
+  

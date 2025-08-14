@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { balanceApi, resourceApi, measureApi } from '../services/api';
 import { Balance, Resource, Measure } from '../types';
 import FilterPanel from '../components/FilterPanel';
@@ -9,7 +10,10 @@ import { AxiosError } from 'axios';
 import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const BalancePage: React.FC = () => {
-  useFaviconAndTitle('Баланс', '/icons/logo-icon.png');
+  const { t } = useTranslation('balance');
+
+  useFaviconAndTitle(t('title'), '/icons/logo-icon.png');
+
   const [balances, setBalances] = useState<Balance[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [measures, setMeasures] = useState<Measure[]>([]);
@@ -57,6 +61,7 @@ const BalancePage: React.FC = () => {
 
   const handleServerExceptions = async (err: unknown) => {
     const error = err as AxiosError;
+
     if (error.response?.status === 404){
       const payload = error.response.data as {
         entityType: string;
@@ -65,48 +70,34 @@ const BalancePage: React.FC = () => {
         message: string;
       };
       if(payload.entityType === "Measure"){
-        var measureName = measures.find(m => m.id === payload.paramValue)?.name
-        addNotification(
-          "warning",
-          `Единица измерения с именем "${measureName}" не найдена`
-        );
+        const measureName = measures.find(m => m.id === payload.paramValue)?.name;
+        addNotification("warning", t('errors.measureNotFound', { name: measureName }));
       }
       if(payload.entityType === "Resource"){
-        var resourceName = resources.find(r => r.id === payload.paramValue)?.name
-        addNotification(
-          "warning",
-          `Ресурс с именем "${resourceName}" не найден`
-        );
+        const resourceName = resources.find(r => r.id === payload.paramValue)?.name;
+        addNotification("warning", t('errors.resourceNotFound', { name: resourceName }));
       }
     }
     if (error.response?.status === 400){
-      addNotification(
-        "warning",
-        `Некорректный запрос к серверу. Обратитесь в техподдержку`
-      );
+      addNotification("warning", t('errors.badRequest'));
     }
     if (error.response?.status === 500){
-      const payload = error.response.data as {
-        message: string;
-      };
-      addNotification(
-        "error",
-        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
-      );
+      const payload = error.response.data as { message: string };
+      addNotification("error", t('errors.serverError'));
       console.error(payload.message);
     }
-  }
+  };
 
   const columns = [
-    { key: 'resourceName', header: 'Ресурс' },
-    { key: 'measureName', header: 'Единица измерения' },
-    { key: 'amount', header: 'Количество' },
+    { key: 'resourceName', header: t('columns.resourceName') },
+    { key: 'measureName', header: t('columns.measureName') },
+    { key: 'amount', header: t('columns.amount') },
   ];
 
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Баланс</h1>
+        <h1>{t('title')}</h1>
       </div>
 
       <FilterPanel
@@ -128,7 +119,7 @@ const BalancePage: React.FC = () => {
       />
 
       {loading ? (
-        <div className="loading">Загрузка...</div>
+        <div className="loading">{t('loading')}</div>
       ) : (
         <DataTable
           columns={columns}
@@ -139,4 +130,4 @@ const BalancePage: React.FC = () => {
   );
 };
 
-export default BalancePage; 
+export default BalancePage;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { receiptApi, resourceApi, measureApi } from '../services/api';
 import {
   ReceiptDocument,
@@ -17,7 +18,9 @@ import { DropdownSelect } from '../components/DropdownSelect';
 import { useFaviconAndTitle } from '../components/UseFaviconAndTitle';
 
 const ReceiptEditPage: React.FC = () => {
-  useFaviconAndTitle('Поступление', '/icons/logo-icon.png');
+  const { t } = useTranslation('receiptEdit');
+
+  useFaviconAndTitle(t('title'), '/icons/logo-icon.png');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isNew = id === undefined;
@@ -32,8 +35,6 @@ const ReceiptEditPage: React.FC = () => {
   const [measures, setMeasures] = useState<Measure[]>([]);
   const [deleteResourceIds, setDeletedResourceIds] = useState<string[]>([]);
   const [originalResources, setOriginalResources] = useState<ReceiptResource[]>([]);
-  const createResources: CreateReceiptResourceRequest[] = [];
-  const updateResources: UpdateReceiptResourceRequest[] = [];
   const [loading, setLoading] = useState(false);
   const [dateInput, setDateInput] = useState<string>('');
 
@@ -41,6 +42,7 @@ const ReceiptEditPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const loadData = async () => {
@@ -59,9 +61,13 @@ const ReceiptEditPage: React.FC = () => {
         setReceipt({
           ...receiptResp.data,
           receiptDate: rawDate
-        })
+        });
         setOriginalResources(receiptResp.data.resources);
         setDateInput(rawDate.toISOString().slice(0, 16));
+      } else {
+        // для нового документа выставим текущее локальное время в инпут
+        const now = new Date();
+        setDateInput(new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16));
       }
     } catch (error) {
       await handleServerExceptions(error);
@@ -69,11 +75,8 @@ const ReceiptEditPage: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if(receipt.number === ''){
-      addNotification(
-        "info",
-        `Номер документа не может быть пустым`
-      );
+    if (receipt.number.trim() === '') {
+      addNotification("info", t('notifications.emptyNumber'));
       return;
     }
     setLoading(true);
@@ -88,10 +91,7 @@ const ReceiptEditPage: React.FC = () => {
             amount: r.amount
           }))
         });
-        addNotification(
-          "success",
-          `Документ поступления "${receipt.number}" успешно создан`
-        );
+        addNotification("success", t('notifications.created', { number: receipt.number }));
       } else {
         const { createResources, updateResources } = buildUpdateArrays();
 
@@ -105,10 +105,7 @@ const ReceiptEditPage: React.FC = () => {
         };
 
         await receiptApi.updateReceipt(updateReq);
-        addNotification(
-          "success",
-          `Документ поступления "${receipt.number}" успешно изменён`
-        );
+        addNotification("success", t('notifications.updated', { number: receipt.number }));
       }
 
       navigate('/receipts');
@@ -121,13 +118,10 @@ const ReceiptEditPage: React.FC = () => {
 
   const handleDelete = async () => {
     if (isNew) return;
-    if (window.confirm('Вы уверены, что хотите удалить это поступление?')) {
+    if (window.confirm(t('confirm.delete') as string)) {
       try {
         await receiptApi.deleteReceipt(receipt.id);
-        addNotification(
-          "success",
-          `Документ поступления "${receipt.number}" успешно удалён`
-        );
+        addNotification("success", t('notifications.deleted', { number: receipt.number }));
         navigate('/receipts');
       } catch (error) {
         await handleServerExceptions(error);
@@ -136,6 +130,9 @@ const ReceiptEditPage: React.FC = () => {
   };
 
   const buildUpdateArrays = () => {
+    const createResources: CreateReceiptResourceRequest[] = [];
+    const updateResources: UpdateReceiptResourceRequest[] = [];
+
     receipt.resources.forEach(r => {
       if (r.id.startsWith('temp-')) {
         createResources.push({
@@ -146,11 +143,11 @@ const ReceiptEditPage: React.FC = () => {
       } else {
         const orig = originalResources.find(o => o.id === r.id);
         const changed =
-          orig &&
+          !!orig &&
           (orig.resourceId !== r.resourceId ||
-           orig.measureId   !== r.measureId   ||
-           orig.amount      !== r.amount);
-  
+            orig.measureId !== r.measureId ||
+            orig.amount !== r.amount);
+
         if (changed) {
           updateResources.push({
             id: r.id,
@@ -161,18 +158,21 @@ const ReceiptEditPage: React.FC = () => {
         }
       }
     });
-  
+
     return { createResources, updateResources };
-  };  
+  };
 
   const addResource = () => {
     const tempId = `temp-${Date.now()}`;
+    const defaultResource = resources[0];
+    const defaultMeasure = measures[0];
+
     const newResource: ReceiptResource = {
       id: tempId,
-      resourceId: resources[0]?.id || '',
-      resourceName: resources[0]?.name || '',
-      measureId: measures[0]?.id || '',
-      measureName: measures[0]?.name || '',
+      resourceId: defaultResource?.id || '',
+      resourceName: defaultResource?.name || '',
+      measureId: defaultMeasure?.id || '',
+      measureName: defaultMeasure?.name || '',
       amount: 0
     };
     setReceipt(prev => ({
@@ -184,11 +184,9 @@ const ReceiptEditPage: React.FC = () => {
   const removeResource = (index: number) => {
     setReceipt(prev => {
       const toRemove = prev.resources[index];
-      if (!toRemove.id.startsWith('temp-')) {
+      if (toRemove && !toRemove.id.startsWith('temp-')) {
         setDeletedResourceIds(prevIds =>
-          prevIds.includes(toRemove.id)
-            ? prevIds
-            : [...prevIds, toRemove.id]
+          prevIds.includes(toRemove.id) ? prevIds : [...prevIds, toRemove.id]
         );
       }
       return {
@@ -222,115 +220,99 @@ const ReceiptEditPage: React.FC = () => {
 
   const handleServerExceptions = async (err: unknown) => {
     const error = err as AxiosError;
-    if (error.response?.status === 409){
-      const payload = error.response.data as {
-        paramValue: string;
-        message: string;
-      };
-      addNotification(
-        "warning",
-        `Документ поступления с номером "${payload.paramValue}" уже существует`
-      );
+
+    if (error.response?.status === 409) {
+      const payload = error.response.data as { paramValue: string; message: string; };
+      addNotification("warning", t('errors.conflict', { number: payload.paramValue }));
     }
-    if (error.response?.status === 404){
+
+    if (error.response?.status === 404) {
       const payload = error.response.data as {
         entityType: string;
         paramName: string;
         paramValue: string;
         message: string;
       };
-      if(payload.entityType === "ReceiptResource"){
-        addNotification(
-          "warning",
-          `Русурс поступления c "${payload.paramName}" = "${payload.paramValue}" не найден при попытке изменения документа`
-        );
+
+      if (payload.entityType === "ReceiptResource") {
+        addNotification("warning", t('errors.notFoundResourceRow', {
+          paramName: payload.paramName,
+          paramValue: payload.paramValue
+        }));
       }
-      if(payload.entityType === "ReceiptDocument"){
-        addNotification(
-          "warning",
-          `Документ поступления с номером "${receipt.number}" не найден`
-        );
+      if (payload.entityType === "ReceiptDocument") {
+        addNotification("warning", t('errors.notFoundDocument', { number: receipt.number }));
       }
-      if(payload.entityType === "Measure"){
-        var measureName = measures.find(m => m.id === payload.paramValue)?.name;
-        addNotification(
-          "warning",
-          `Единица измерения с именем "${measureName}" не найдена`
-        );
+      if (payload.entityType === "Measure") {
+        const measureName = measures.find(m => m.id === payload.paramValue)?.name || payload.paramValue;
+        addNotification("warning", t('errors.measureNotFound', { name: measureName }));
       }
-      if(payload.entityType === "Resource"){
-        var resourceName = resources.find(r => r.id === payload.paramValue)?.name;
-        addNotification(
-          "warning",
-          `Ресурс с именем "${resourceName}" не найден`
-        );
+      if (payload.entityType === "Resource") {
+        const resourceName = resources.find(r => r.id === payload.paramValue)?.name || payload.paramValue;
+        addNotification("warning", t('errors.resourceNotFound', { name: resourceName }));
       }
     }
-    if (error.response?.status === 410){
+
+    if (error.response?.status === 410) {
       const payload = error.response.data as {
         resourceId: string;
         measureId: string;
         message: string;
       };
-      var measureName = measures.find(m => m.id === payload.measureId)?.name;
-      var resourceName = resources.find(r => r.id === payload.resourceId)?.name
-      addNotification(
-        "warning",
-        `Баланс ресурса "${resourceName}" - "${measureName}" не найден`
-      );
+      const measureName = measures.find(m => m.id === payload.measureId)?.name || payload.measureId;
+      const resourceName = resources.find(r => r.id === payload.resourceId)?.name || payload.resourceId;
+      addNotification("warning", t('errors.balanceNotFound', {
+        resource: resourceName,
+        measure: measureName
+      }));
     }
-    if (error.response?.status === 422){
+
+    if (error.response?.status === 422) {
       const payload = error.response.data as {
         resourceId: string;
         measureId: string;
         message: string;
       };
-      var measureName = measures.find(m => m.id === payload.measureId)?.name;
-      var resourceName = resources.find(r => r.id === payload.resourceId)?.name
-      addNotification(
-        "warning",
-        `Ресурса "${resourceName}" - "${measureName}" недостаточно на складе`
-      );
+      const measureName = measures.find(m => m.id === payload.measureId)?.name || payload.measureId;
+      const resourceName = resources.find(r => r.id === payload.resourceId)?.name || payload.resourceId;
+      addNotification("warning", t('errors.insufficient', {
+        resource: resourceName,
+        measure: measureName
+      }));
     }
-    if (error.response?.status === 400){
-      addNotification(
-        "warning",
-        `Некорректный запрос к серверу. Обратитесь в техподдержку`
-      );
+
+    if (error.response?.status === 400) {
+      addNotification("warning", t('errors.badRequest'));
     }
-    if (error.response?.status === 500){
-      const payload = error.response.data as {
-        message: string;
-      };
-      addNotification(
-        "error",
-        `Произошла ошибка на сервере. Повторите попытку позже или обратитесь в техподдержку`
-      );
+
+    if (error.response?.status === 500) {
+      const payload = error.response.data as { message: string; };
+      addNotification("error", t('errors.serverError'));
       console.error(payload.message);
     }
-  }
+  };
 
   return (
     <div className="page">
       <div className="page-header">
-        <h1>Поступление</h1>
+        <h1>{t('title')}</h1>
       </div>
 
       <div className="form-container">
         <div className="form-actions">
           <button className="btn btn-success" onClick={handleSave} disabled={loading}>
-            Сохранить
+            {t('buttons.save')}
           </button>
           {!isNew && (
             <button className="btn btn-danger" onClick={handleDelete} disabled={loading}>
-              Удалить
+              {t('buttons.delete')}
             </button>
           )}
         </div>
 
         <div className="form-row">
           <div className="form-group">
-            <label>Номер</label>
+            <label>{t('form.number')}</label>
             <input
               type="text"
               value={receipt.number}
@@ -339,7 +321,7 @@ const ReceiptEditPage: React.FC = () => {
           </div>
 
           <div className="form-group">
-            <label>Дата и время</label>
+            <label>{t('form.dateTime')}</label>
             <input
               type="datetime-local"
               value={dateInput}
@@ -356,16 +338,18 @@ const ReceiptEditPage: React.FC = () => {
         </div>
 
         <div className="resource-table">
-          <h3>Ресурсы</h3>
+          <h3>{t('sections.resources')}</h3>
           <table>
             <thead>
               <tr>
                 <th className="action-cell">
-                  <button className="action-btn add-btn" onClick={addResource}>+</button>
+                  <button className="action-btn add-btn" onClick={addResource}>
+                    {t('buttons.addRow')}
+                  </button>
                 </th>
-                <th>Ресурс</th>
-                <th>Единица измерения</th>
-                <th>Количество</th>
+                <th>{t('table.resource')}</th>
+                <th>{t('table.measure')}</th>
+                <th>{t('table.amount')}</th>
               </tr>
             </thead>
             <tbody>
@@ -375,13 +359,14 @@ const ReceiptEditPage: React.FC = () => {
                     <button
                       className="action-btn delete-btn"
                       onClick={() => removeResource(idx)}
+                      title={t('buttons.removeRow') as string}
                     >
-                      ×
+                      {t('buttons.removeRow')}
                     </button>
                   </td>
                   <td>
                     <DropdownSelect
-                      placeholder="Выберите ресурс"
+                      placeholder={t('placeholders.selectResource')}
                       options={resources}
                       value={res.resourceId}
                       onChange={val => updateResource(idx, 'resourceId', val)}
@@ -389,14 +374,15 @@ const ReceiptEditPage: React.FC = () => {
                   </td>
                   <td>
                     <DropdownSelect
-                      placeholder="Выберите меру"
+                      placeholder={t('placeholders.selectMeasure')}
                       options={measures}
                       value={res.measureId}
                       onChange={val => updateResource(idx, 'measureId', val)}
                     />
                   </td>
                   <td>
-                    <input className="unset-border"
+                    <input
+                      className="unset-border"
                       type="number"
                       value={res.amount}
                       min="0"
